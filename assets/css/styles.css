@@ -417,6 +417,7 @@ html:not(.js) .theme-toggle, html:not(.js) .nav-toggle, html:not(.js) .copy-btn 
 .pm::before, .pm::after { content: ""; position: absolute; top: 50%; left: 7px; right: 7px; height: 1.5px; margin-top: -0.75px; background: currentColor; transition: transform 220ms var(--ease-out); }
 .pm::after { transform: rotate(90deg); }
 details[open] > summary .pm::after { transform: rotate(0deg); }
+@media (forced-colors: active) { .pm::before, .pm::after { background: CanvasText; } }   /* the bars are backgrounds, which forced colours drop */
 .more-body { display: grid; gap: var(--s5); padding: var(--s2) 0 var(--s6); color: var(--ink-2); }
 @media (min-width: 900px) { .more-body { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(2rem, 4vw, 4.5rem); } }
 .more-body h4, .xp-body h4 { margin-bottom: var(--s1); font-size: var(--t-small); color: var(--ink); }
@@ -558,11 +559,6 @@ details[open] > summary .pm::after { transform: rotate(0deg); }
      white Canvas in a light scheme. */
   [data-fig="write"] .key-flow { color: CanvasText; }
   .contact-chip[data-state="anode"], .contact-chip[data-state="cathode"] { border-width: 3px; }   /* the coloured edge is gone */
-  /* The chosen pattern and preset are marked by a fill and an inset line, which forced colours
-     drop, and the slider's track is a fill: system colours bring them back. */
-  [data-fig="write"] .seg input:checked + span, [data-fig="write"] .chip-btn[data-active] { forced-color-adjust: none; background: Highlight; border-color: Highlight; color: HighlightText; box-shadow: none; }
-  [data-fig="write"] .range::-webkit-slider-runnable-track { forced-color-adjust: none; background: CanvasText; }
-  [data-fig="write"] .range::-moz-range-track { forced-color-adjust: none; background: CanvasText; }
 }
 
 .controls { display: grid; gap: var(--s5) var(--s7); padding-top: var(--s5); border-top: 1px solid var(--chrome-rule); }
@@ -603,6 +599,13 @@ details[open] > summary .pm::after { transform: rotate(0deg); }
 .range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 28px; margin-top: -13px; border: 2px solid #000; border-radius: 2px; background: var(--v-yellow); }
 .range::-moz-range-thumb { width: 14px; height: 24px; border: 2px solid #000; border-radius: 2px; background: var(--v-yellow); }
 .range:focus-visible { outline: 2px solid var(--v-red); outline-offset: 2px; }
+/* Forced colours drop the fill and the inset line that mark the chosen option and the active
+   preset, and the slider's track is a fill: system colours bring them back, in every figure. */
+@media (forced-colors: active) {
+  .seg input:checked + span, .chip-btn[data-active] { forced-color-adjust: none; background: Highlight; border-color: Highlight; color: HighlightText; box-shadow: none; }
+  .range::-webkit-slider-runnable-track { forced-color-adjust: none; background: CanvasText; }
+  .range::-moz-range-track { forced-color-adjust: none; background: CanvasText; }
+}
 
 .readouts { display: grid; gap: var(--s4); padding-top: var(--s5); border-top: 1px solid var(--chrome-rule); }
 @media (min-width: 900px) { .readouts { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); column-gap: var(--s7); } }
@@ -779,7 +782,6 @@ html:not(.js) .loop-cap { display: none; }   /* it narrates the drawing */
   .lp-mark-dot { fill: Canvas; stroke: CanvasText; }
   .lp-mark-dot.is-current { fill: CanvasText; }
   .direction-q li::before { border-color: CanvasText; }
-  .direction-q .pm::before, .direction-q .pm::after { background: CanvasText; }   /* the bars are backgrounds */
   .direction .trace a[data-mark]::before { border-color: LinkText; background: Canvas; }
   .direction .trace a[data-mark="current"]::before { background: LinkText; }
   .lp-tip { border-color: CanvasText; }
@@ -978,7 +980,6 @@ html:not(.js) .signals { display: none; }   /* drawn by script; without it the e
   .btn:active, .chip-btn:active, .icon-btn:active { transform: none; }
   .nav-list a::after, .pm::before, .pm::after { transition: none; }
   details::details-content { transition: none !important; }
-  .xp.is-target { animation-duration: 500ms; }
 }
 
 /* ---------- Print ---------- */
