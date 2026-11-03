@@ -74,7 +74,7 @@
   });
 
   /* ---------- Current section in the nav ---------- */
-  var sectionToLink = { research: '#research', next: '#research', publications: '#publications', about: '#about', contact: '#contact' };
+  var sectionToLink = { research: '#research', next: '#next', publications: '#publications', about: '#about', contact: '#contact' };
   var navLinks = Array.prototype.slice.call(document.querySelectorAll('.nav-list a[href^="#"]'));
 
   function markCurrent(id) {

@@ -403,8 +403,10 @@ html:not(.js) .theme-toggle, html:not(.js) .nav-toggle, html:not(.js) .copy-btn 
 .facts dt { font-size: var(--t-small); font-weight: 700; color: var(--ink-2); }
 .facts dd { color: var(--ink); }
 
+/* "Where this leads": each project's links into the directions below, underlined in their violet. */
 .next-line { max-width: var(--measure); padding-top: var(--s4); border-top: 1px solid var(--rule); font-size: var(--t-small); color: var(--ink-2); }
-.next-line a { font-weight: 700; color: var(--ink); }
+.next-line a { font-weight: 700; color: var(--ink); text-decoration-color: var(--dir, #937cf1); }
+.next-key { margin-right: var(--s2); font: 400 var(--t-label)/1.6 var(--mono); color: var(--ink-3); }
 
 .more { max-width: 60rem; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
 .more summary, .xp-more summary { list-style: none; cursor: pointer; }
@@ -559,15 +561,172 @@ details[open] > summary .pm::after { transform: rotate(0deg); }
 .stats dd { font: 400 var(--t-small)/1.4 var(--mono); color: var(--v-ink); text-align: right; font-variant-numeric: tabular-nums; }
 .stage-caption { max-width: 72ch; padding-top: var(--s4); border-top: 1px solid var(--chrome-rule); font-size: 0.9375rem; line-height: 1.55; color: var(--v-ink-3); }
 
-/* ---------- Next questions ---------- */
-.questions { display: grid; gap: 0; border-top: 1px solid var(--rule); }
-.question { display: grid; gap: var(--s4) clamp(2rem, 5vw, 5rem); padding-block: clamp(1.75rem, 1.25rem + 1.5vw, 2.75rem); border-bottom: 1px solid var(--rule); }
-@media (min-width: 1000px) { .question { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); } }
-.question h3 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); letter-spacing: -0.02em; line-height: 1.15; }
-.question-body { display: grid; gap: var(--s4); align-content: start; max-width: var(--measure); }
-.question-body p { color: var(--ink-2); }
-.question-body .trace { font-size: var(--t-small); color: var(--ink-3); }
-.question-body .trace a { color: var(--ink-2); }
+/* ---------- Directions: one loop, four directions ----------
+   assets/js/directions.js draws the loop into .loop-stage from the words in index.html. Its
+   colours are tokens, so the theme toggle restyles it without a redraw: --dir (violet, "ahead")
+   for the parts of the loop, the inks for its points and for the record of my work, --track for
+   the ring, and the contour colours for the brain. Emphasis is stroke width and label colour;
+   nothing on the loop fades. */
+.section-head .directions-ways { font-size: var(--t-body); line-height: 1.6; }
+.directions-grid { display: grid; gap: var(--s7); }
+@media (min-width: 1000px) {
+  .directions-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); column-gap: clamp(2.5rem, 5vw, 5.5rem); align-items: start; }
+  /* While the four directions scroll past, the loop stays beside them and follows the one read. */
+  .loop { position: sticky; top: calc(var(--header-h) + env(safe-area-inset-top, 0px) + 24px); }
+}
+@media (min-width: 1000px) and (max-height: 720px) { .loop { position: static; } }
+@media (min-width: 640px) and (max-width: 999.98px) { .loop { max-width: 42rem; } }
+
+/* A container: the key and the drawing's reserved height follow the figure's own width. */
+.loop { display: grid; gap: var(--s3); min-width: 0; margin: 0; container-type: inline-size; }
+.loop-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--s1) var(--s4); }
+.loop-title, .loop-tag { font: 400 var(--t-label)/1.4 var(--mono); color: var(--ink-3); }
+.loop-title strong { font-weight: 700; color: var(--ink-2); }
+.loop-stage { position: relative; }
+/* Phones: the drawing runs to the screen's edges, as the figures do, so its labels keep their size. */
+@media (max-width: 639.98px) {
+  .loop-stage { margin-left: calc(-1 * max(var(--gutter), env(safe-area-inset-left, 0px))); margin-right: calc(-1 * max(var(--gutter), env(safe-area-inset-right, 0px))); }
+  .loop-points { padding-inline: max(var(--gutter), env(safe-area-inset-left, 0px)) max(var(--gutter), env(safe-area-inset-right, 0px)); }
+}
+/* Without scripts, the points stand in for the drawing as a line of text. With them, the list
+   gives way to the drawing, whose height is held until it is drawn. */
+.loop-points { display: flex; flex-wrap: wrap; gap: var(--s1) var(--s2); font: 700 var(--t-label)/1.6 var(--mono); color: var(--ink-2); }
+.loop-points li + li::before { content: "→"; content: "→" / ""; margin-right: var(--s2); font-weight: 400; color: var(--ink-3); }
+.loop-points span { font-weight: 400; color: var(--ink-3); }
+.js .loop-points { display: none; }
+/* The drawing's height follows its width (about 1.4 times it, less 238px, within 236 to 474px). */
+.js .loop-stage:not(.is-drawn) { min-height: clamp(236px, 140cqi - 238px, 474px); }
+@media (max-width: 639.98px) { .js .loop-stage:not(.is-drawn) { min-height: clamp(236px, 140vw - 238px, 474px); } }
+html:not(.js) .loop-cap { display: none; }   /* it narrates the drawing */
+/* The key: the two kinds of line, then the two kinds of mark, in aligned columns; one column
+   where two would squeeze their words. */
+.loop-key { display: grid; grid-template-columns: repeat(2, minmax(0, max-content)); gap: var(--s2) var(--s5); padding-top: var(--s3); border-top: 1px solid var(--rule); font: 400 var(--t-label)/1.45 var(--mono); color: var(--ink-3); }
+@container (max-width: 469.98px) { .loop-key { grid-template-columns: minmax(0, 1fr); } }
+.loop-key li { display: inline-flex; align-items: center; gap: var(--s2); }
+.lk { flex: none; overflow: visible; }
+.loop-cap { max-width: 60ch; font-size: 0.9375rem; line-height: 1.55; color: var(--ink-3); }
+
+/* The drawing */
+.lp { display: block; width: 100%; height: auto; overflow: visible; }
+.lp-meter { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: hidden; visibility: hidden; pointer-events: none; }
+.lp-ring { fill: none; stroke: var(--track, #3a3a3a); stroke-width: 1; }
+.lp-arc, .lk-line { fill: none; stroke: var(--dir, #937cf1); stroke-width: 3.5; stroke-linecap: round; }
+.lp-arc.is-long, .lk-line.is-long { stroke-dasharray: 5 9; }
+.lp-arc { transition: stroke-width 220ms var(--ease-out); }
+.lp-arc.is-active { stroke-width: 6.5; }
+.lp-chev { fill: none; stroke: var(--dir, #937cf1); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: stroke-width 220ms var(--ease-out); }
+.lp-chev.is-active { stroke-width: 3; }
+.lp-link, .lp-mark { cursor: pointer; text-decoration: none; }   /* SVG text would take the site's link underline */
+.lp-link:focus-visible { outline: none; }   /* the ring below follows the arc instead of a box */
+.lp-hit { fill: none; stroke: transparent; stroke-width: 28; stroke-linecap: round; pointer-events: stroke; }
+.lp-halo, .lp-halo-gap { fill: none; stroke: none; stroke-linecap: round; stroke-linejoin: round; }
+.lp-link:focus-visible .lp-halo { stroke: var(--pial); stroke-width: 16; }
+.lp-link:focus-visible .lp-halo-gap { stroke: var(--ground); stroke-width: 11.5; }
+.lp-tie { fill: none; stroke: var(--ink-3); stroke-width: 1.4; stroke-linecap: round; stroke-dasharray: 0 4.5; }
+/* Points and arrowheads lie over the parts' links; a point belongs to two parts, so the pointer
+   passes through to the part beneath. */
+.lp-points, .lp-chevs { pointer-events: none; }
+.lp-node { fill: var(--ground); stroke: var(--ink-3); stroke-width: 1.5; transition: stroke 220ms ease; }
+.lp-node.is-on { stroke: var(--ink); }
+.lp-brain-pial { fill: var(--ground); stroke: var(--pial); stroke-width: 2.25; }
+.lp-brain-wm { fill: var(--contour); }
+.lp-point { font: 700 13px var(--mono); fill: var(--ink-2); transition: fill 220ms ease; }
+.lp-point.is-on { fill: var(--ink); }
+.lp-sub, .lp-when, .lp-via { font: 400 12px var(--mono); fill: var(--ink-3); }
+.lp-name { font: 700 16px var(--font); letter-spacing: -0.005em; fill: var(--ink); transition: fill 220ms ease; }
+.loop[data-active] .lp-name { fill: var(--ink-3); }
+.loop[data-active] .lp-label.is-active .lp-name { fill: var(--ink); }
+.is-narrow .lp-point { font-size: 12px; }
+.is-narrow .lp-sub, .is-narrow .lp-when, .is-narrow .lp-via, .is-tiny .lp-via { font-size: 11px; }
+.is-narrow .lp-name { font-size: 15px; }
+.is-tiny .lp-point { font-size: 11px; }
+.is-tiny .lp-name { font-size: 14px; }
+/* Marks: a contact on the strip. The ground-coloured ring parts the arc around each one. */
+.lp-mark:focus { outline: none; }   /* reached by pointer only; the list's links carry focus */
+.lp-mark-hit { fill: transparent; }
+.lp-mark-ring { fill: var(--ground); }
+.lp-mark-halo { fill: none; stroke: var(--ink); stroke-width: 1.5; opacity: 0; transition: opacity 160ms ease; }
+.lp-mark-dot { fill: var(--ground); stroke: var(--ink-2); stroke-width: 1.5; transform-box: fill-box; transform-origin: center; transition: transform 160ms var(--ease-out); }
+.lp-mark-dot.is-current { fill: var(--ink); stroke: var(--ink); }
+.lp-mark.is-active .lp-mark-dot { stroke: var(--ink); }
+.lp-mark.is-lit .lp-mark-halo { opacity: 1; }
+.lp-mark.is-lit .lp-mark-dot { transform: scale(1.25); }
+.lp-tip { position: absolute; z-index: 2; width: max-content; max-width: min(17rem, 80vw); padding: var(--s1) var(--s2); background: var(--raised); border: 1px solid var(--rule-strong); border-radius: var(--radius); font: 400 var(--t-label)/1.4 var(--mono); color: var(--ink); pointer-events: none; transform: translate(-50%, calc(-100% - 15px)); }
+.lp-tip.is-below { transform: translate(-50%, 15px); }
+
+/* The four directions */
+.directions-list { display: grid; border-top: 1px solid var(--rule); }
+.direction { position: relative; display: grid; gap: var(--s4); padding-block: var(--s6) clamp(2.25rem, 1.75rem + 1.5vw, 3.25rem); border-bottom: 1px solid var(--rule); scroll-margin-top: var(--s4); }
+/* Links to the earlier questions (#next-anatomy, #next-signal, #next-behavior) land on the direction that took each in. */
+.anchor-alias { position: absolute; top: 0; left: 0; scroll-margin-top: var(--s4); }
+.direction-meta { display: flex; align-items: center; gap: var(--s3); }
+.glyph { flex: none; overflow: visible; }
+.gl-ring { fill: none; stroke: var(--track, #3a3a3a); stroke-width: 1.5; }
+.gl-arc { fill: none; stroke: var(--dir, #937cf1); stroke-width: 3; stroke-linecap: round; transition: stroke-width 220ms var(--ease-out); }
+.gl-arc.is-long { stroke-dasharray: 2.5 5.5; }
+.gl-brain { fill: var(--contour); }
+.direction.is-active .gl-arc { stroke-width: 4.5; }
+.direction-when { font: 400 var(--t-label)/1.5 var(--mono); color: var(--ink-3); }
+.direction-when strong { font: 700 var(--t-small)/1.4 var(--font); color: var(--ink); }
+.direction h3 { max-width: 30ch; font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); letter-spacing: -0.02em; line-height: 1.15; }
+.direction-body { display: grid; gap: var(--s4); max-width: var(--measure); }
+.direction-body > p:first-child { color: var(--ink-2); }
+.direction-q summary { display: inline-flex; align-items: center; gap: var(--s3); min-height: 44px; font: 400 var(--t-label)/1.4 var(--mono); color: var(--ink-2); list-style: none; cursor: pointer; }
+.direction-q summary::-webkit-details-marker { display: none; }
+.direction-q summary:hover .pm { border-color: var(--contour); }
+.direction-q ul { display: grid; gap: var(--s2); padding-bottom: var(--s2); }
+.direction-q li { position: relative; padding-left: 1.4rem; color: var(--ink); }
+.direction-q li::before { content: ""; position: absolute; left: 0.1rem; top: 0.6em; width: 9px; height: 9px; border: 1.5px solid var(--dir, #937cf1); border-radius: 50%; }
+.direction-q.is-instant::details-content { transition: none !important; }
+.direction .trace { font-size: var(--t-small); color: var(--ink-3); }
+.direction .trace a { color: var(--ink-2); }
+.trace-key { margin-right: var(--s2); font: 400 var(--t-label)/1.6 var(--mono); color: var(--ink-3); }
+/* Each piece of work wears its mark from the loop: filled for a current project, open for earlier
+   work. The mark sits in the link's own padding, so a line never breaks between it and its words. */
+.direction .trace a[data-mark] { position: relative; padding-left: 0.9em; }
+.direction .trace a[data-mark]::before { content: ""; position: absolute; left: 0.05em; top: calc(0.79em - 4px); width: 8px; height: 8px; border: 1.5px solid var(--ink-2); border-radius: 50%; }
+.direction .trace a[data-mark="current"]::before { border-color: var(--ink); background: var(--ink); }
+.direction-lead { font-size: var(--t-small); color: var(--ink-3); }
+.direction-lead a { font-weight: 700; color: var(--ink); }
+.directions-close { max-width: var(--measure); margin-top: clamp(2.5rem, 2rem + 2.5vw, 4.5rem); font-size: var(--t-lede); line-height: 1.5; color: var(--ink-2); }
+.directions-close a { color: var(--ink); }
+@media (max-width: 640px) {
+  .section-head .directions-ways { font-size: var(--t-small); }
+  .directions-close { font-size: 1.125rem; }
+}
+/* Phones: the part's path takes a line of its own under the name and time. */
+@media (max-width: 639.98px) {
+  .direction-path { display: block; }
+  .direction-path .sep { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-arc, .lp-chev, .lp-node, .lp-point, .lp-name, .lp-mark-halo, .lp-mark-dot, .gl-arc { transition: none; }
+}
+/* Forced colours: the loop keeps its meaning in system colours. Parts in CanvasText, the stressed
+   part in Highlight, filled and open marks as filled and open shapes. */
+@media (forced-colors: active) {
+  .lp-ring, .gl-ring { stroke: GrayText; }
+  .lp-arc, .lp-chev, .lk-line, .gl-arc, .lp-tie { stroke: CanvasText; }
+  .lp-arc.is-active, .lp-chev.is-active { stroke: Highlight; }
+  .lp-link:focus-visible .lp-halo, .lp-mark-halo { stroke: Highlight; }
+  .lp-link:focus-visible .lp-halo-gap { stroke: Canvas; }
+  .lp-node, .lp-brain-pial { fill: Canvas; stroke: CanvasText; }
+  .lp-brain-wm, .gl-brain { fill: CanvasText; }
+  .lp-point, .lp-sub, .lp-name, .lp-when, .lp-via, .loop[data-active] .lp-name { fill: CanvasText; }
+  .loop[data-active] .lp-label.is-active .lp-name { fill: Highlight; }
+  .lp-mark-ring { fill: Canvas; }
+  .lp-mark-dot { fill: Canvas; stroke: CanvasText; }
+  .lp-mark-dot.is-current { fill: CanvasText; }
+  .direction-q li::before { border-color: CanvasText; }
+  .direction-q .pm::before, .direction-q .pm::after { background: CanvasText; }   /* the bars are backgrounds */
+  .direction .trace a[data-mark]::before { border-color: LinkText; background: Canvas; }
+  .direction .trace a[data-mark="current"]::before { background: LinkText; }
+  .lp-tip { border-color: CanvasText; }
+}
+@media print {
+  .loop { position: static; }
+  .lp-tip { display: none; }
+}
 
 /* ---------- Publications ---------- */
 .pubs { display: grid; border-top: 1px solid var(--rule); }
