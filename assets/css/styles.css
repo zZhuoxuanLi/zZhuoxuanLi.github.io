@@ -911,6 +911,8 @@ html:not(.js) .signals { display: none; }   /* drawn by script; without it the e
   .sg-now-label, .sg-year, .sg-row-name, .sg-row-sub { fill: CanvasText; }
   .sg-bar { fill: Canvas; stroke: LinkText; }
   .sg-bar.is-now, .sg-bar-label, .sg-bar-label.is-now { fill: LinkText; }
+  .sg-link:hover .sg-bar, .sg-link:focus-visible .sg-bar { stroke: Highlight; }
+  .sg-link:hover .sg-bar-label, .sg-link:focus-visible .sg-bar-label { fill: Highlight; }
   .sg-link:focus-visible .sg-ring { stroke: Highlight; }
   .sg-pop-bg { fill: Canvas; stroke: CanvasText; }
   .sg-row-name, .sg-row-sub, .sg-year, .sg-now-label, .sg-bar-label { stroke: Canvas; }
@@ -918,9 +920,14 @@ html:not(.js) .signals { display: none; }   /* drawn by script; without it the e
 @media print {
   .signals { break-inside: avoid; }
   .sg-pop { display: none; }
-  /* The page prints on white whatever the theme, so the open bars and the halos are white too. */
+  /* The page prints on white whatever the theme, so the open bars and the halos are white too,
+     and the lines take the light theme's colours: its hairline grey, and its darker contour for
+     today (the dark theme's bright yellow would barely show on paper). */
   .sg-bar:not(.is-now) { fill: #fff; }
   .sg-row-name, .sg-row-sub, .sg-year, .sg-now-label, .sg-bar-label { stroke: #fff; }
+  .sg-grid, .sg-rule { stroke: #bfc3c3; }
+  .sg-now { stroke: #7a5b00; }
+  .sg-now-label { fill: #7a5b00; }
 }
 @media (min-width: 1000px) {
   .xp { grid-template-columns: 9.5rem minmax(0, 4fr) minmax(0, 6fr); column-gap: clamp(2rem, 3vw, 3.5rem); row-gap: var(--s1); align-items: start; }

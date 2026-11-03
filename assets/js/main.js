@@ -126,18 +126,35 @@
     if (!target.children.length && !target.textContent.trim()) return target.parentElement;
     return target;
   }
-  var ringed = null, ringTimer = 0;
+  /* The ring starts once the page is still, with the mark on screen. The smooth scroll to a far
+     entry, or the browser's own scroll to a deep link after the page loads, can take well over a
+     second, and a ring started with the click would have faded before the mark arrived. */
+  var ringed = null, waiting = null, ringTimer = 0, giveUp = 0;
   function ring(target) {
     var mark = arrivalMark(target);
     if (!mark) return;
     clearTimeout(ringTimer);
-    if (ringed) ringed.classList.remove('is-target');
-    void mark.offsetWidth;   // restart the ring when the same place is reached again
+    if (ringed) { ringed.classList.remove('is-target'); ringed = null; }
+    waiting = mark;
+    giveUp = Date.now() + 3000;   // if the mark never comes on screen, ring it anyway after 3s
+    ringTimer = setTimeout(startRing, 150);
+  }
+  function startRing() {
+    var mark = waiting, box = mark.getBoundingClientRect();
+    var offscreen = box.bottom < 0 || box.top > window.innerHeight;
+    if (offscreen && Date.now() < giveUp) { ringTimer = setTimeout(startRing, 150); return; }
+    waiting = null;
     mark.classList.add('is-target');
     ringed = mark;
     // Off once it has run (2s), so no ring stays behind: in forced colours it is a still outline.
     ringTimer = setTimeout(function () { mark.classList.remove('is-target'); ringed = null; }, 2100);
   }
+  // Each step of a scroll puts a waiting ring off a little, so it starts when the page is still.
+  window.addEventListener('scroll', function () {
+    if (!waiting) return;
+    clearTimeout(ringTimer);
+    ringTimer = setTimeout(startRing, 150);
+  }, { passive: true });
 
   function revealTarget(hash, flash) {
     var target = targetOf(hash);

@@ -14,8 +14,8 @@
    Labels never overlap: current roles place theirs first, then the longer
    bars, each trying above its bar, beside it, then below it (a row grows only
    when one needs that). A label with no free place is shown only while its
-   bar is hovered or focused. Redrawn only when the width changes and when
-   fonts load; nothing runs while idle. */
+   bar is hovered or focused. Redrawn only when the width changes, when fonts
+   load and for printing; nothing runs while idle. */
 (function () {
   'use strict';
 
@@ -125,11 +125,18 @@
   var TOP = 22, LANE = 24, BELOW = 14, AXIS = 26;
   var BASE = { above: -9, beside: 4, below: 16 };
 
+  // Printing lays the page out again at the paper's width, which a drawing made for the screen
+  // does not fit: made on a desktop it would print at half size, on a phone half as large again.
+  // While printing, the chart is drawn for the text width of an A4 or Letter page instead.
+  var PRINT_W = 660, printing = false;
+
   var svg = null, drawnW = 0;
   function draw() {
-    var W = stage.getBoundingClientRect().width;
+    var W = printing ? PRINT_W : stage.getBoundingClientRect().width;
     if (!W) return;
     drawnW = W;
+    // A redraw replaces the links; the one that had the focus gets it back below.
+    var focused = svg ? Array.prototype.indexOf.call(svg.querySelectorAll('.sg-link'), document.activeElement) : -1;
     var narrow = W < 600;   // phones: each row's name runs across its top, over the full width
     var ROW = narrow ? 52 : 48, BAR = narrow ? 40 : 30;
     var now = today();
@@ -222,13 +229,13 @@
 
     var grid = el('g', { 'aria-hidden': 'true' }, svg);
     // Years: a line at each January, and a label where there is room for one (every other year, or
-    // fewer, once the axis is long for the width).
+    // fewer, once the axis is long for the width, and none that would run past the right edge).
     var yearPx = (x1 - x0) * 12 / (t1 - t0), step = 1;
     while (step * yearPx < yearW + 10) step++;
     for (var yr = t0 / 12; yr <= t1 / 12; yr++) {
       var gx = crisp(X(yr * 12));
       el('line', { class: 'sg-grid', x1: gx, x2: gx, y1: TOP, y2: bottom }, grid);
-      if (yr < t1 / 12 && (yr - t0 / 12) % step === 0) text(grid, 'sg-year', gx + 3.5, bottom + 17, String(yr));
+      if (yr < t1 / 12 && (yr - t0 / 12) % step === 0 && gx + 3.5 + yearW <= W) text(grid, 'sg-year', gx + 3.5, bottom + 17, String(yr));
     }
     rows.forEach(function (row) {
       var ry = crisp(row.end) - 1;
@@ -307,6 +314,9 @@
 
     rowList.hidden = true;   // the drawing stands in for the list from here
     stage.classList.add('is-drawn');
+    if (links[focused]) {
+      try { links[focused].link.focus({ preventScroll: true }); } catch (e) { links[focused].link.focus(); }
+    }
   }
 
   // A tucked label shows while its bar is hovered or focused. The listeners sit on the stage, not
@@ -326,10 +336,12 @@
   }
   if ('ResizeObserver' in window) {
     // Only a new width changes the drawing; its own change of height comes back here and stops.
-    new ResizeObserver(function () { if (Math.abs(stage.getBoundingClientRect().width - drawnW) >= 0.5) redraw(); }).observe(stage);
+    new ResizeObserver(function () { if (!printing && Math.abs(stage.getBoundingClientRect().width - drawnW) >= 0.5) redraw(); }).observe(stage);
   } else {
     window.addEventListener('resize', redraw);
   }
+  window.addEventListener('beforeprint', function () { printing = true; draw(); });
+  window.addEventListener('afterprint', function () { printing = false; draw(); });
   // Labels are placed by their measured widths, so they are placed again once the fonts arrive.
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(redraw);
 })();
