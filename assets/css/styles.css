@@ -513,6 +513,9 @@ details[open] > summary .pm::after { transform: rotate(0deg); }
    in views under 560px, where fig-write.js fits 37 mm across instead of 28 so that all nine
    contacts stay in view: 21.4 mm deep at 1/37 of the width. */
 .stage-head h3 { font-size: var(--t-h3); letter-spacing: -0.015em; }
+/* The research figures get 48px above them: their project's grid gap plus their own margin. Fig. 4
+   sits in the plain flow of the Directions section, so it sets the same space itself. */
+.stage[data-fig="write"] { margin-top: var(--s7); }
 @media (min-width: 1000px) { .views-pair { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
 @container (width < 559.5px) { .write-canvas { height: 57.8378cqi; } }
 [data-fig="write"] .control { align-content: start; }
@@ -528,6 +531,11 @@ details[open] > summary .pm::after { transform: rotate(0deg); }
   background: linear-gradient(90deg, #bbf8ff, #86e2f6, #59c9ed, #34afe5, #1f94da, #1b7acb, #1f61b3, #204c92, #1b3871, #13274c, #2a0c0c,
     #4a1113, #6e1419, #901b1e, #b22422, #d13721, #e9531d, #fa7424, #fe9e46, #ffc671, #ffeba2); }
 .key-flow { flex: none; margin-top: 0.3em; color: var(--v-ink); }
+/* The keys' notes are long. Where a view is too narrow for a note to sit beside its colour bar in
+   lines of a useful length (phones: eleven short lines at 320px), it wraps under the bar and
+   takes the full width. */
+[data-fig="write"] .key-pair { flex-wrap: wrap; row-gap: var(--s2); }
+[data-fig="write"] .cbar + .view-note { flex: 1 1 14rem; }
 /* "Your own": the contacts in the Stimulate view become buttons (pointer), mirrored by a row of
    toggles after the pattern choice (keyboard and screen readers). The row has one column per
    contact, left to right as on the strip, wherever each toggle gets at least 44px; otherwise
@@ -546,6 +554,9 @@ details[open] > summary .pm::after { transform: rotate(0deg); }
 .contact-chip[data-state="cathode"] { border-color: #30ace4; box-shadow: inset 0 -3px 0 #30ace4; }  /* and cool end */
 @media (forced-colors: active) {
   [data-fig="write"] .cbar-ramp { forced-color-adjust: none; }   /* the keys keep their colours, as the canvases do */
+  /* The arrow is an SVG, which keeps an explicitly set colour in forced colours: pale #ededed on a
+     white Canvas in a light scheme. */
+  [data-fig="write"] .key-flow { color: CanvasText; }
   .contact-chip[data-state="anode"], .contact-chip[data-state="cathode"] { border-width: 3px; }   /* the coloured edge is gone */
   /* The chosen pattern and preset are marked by a fill and an inset line, which forced colours
      drop, and the slider's track is a fill: system colours bring them back. */
