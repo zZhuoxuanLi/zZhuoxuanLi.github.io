@@ -415,12 +415,18 @@
     actx.strokeRect(AX(-18) + 0.5, AZ(-10) + 0.5, AX(18) - AX(-18), AZ(10) - AZ(-10));
 
     // The fold beneath the array: drawn deliberately, though the array cannot see into it.
+    // The red dashes run over a black halo, like the yellow marks and labels below: on the map's
+    // warm arm, red alone disappears when the source is deep and the fold lies under the peak.
     actx.save();
     actx.setLineDash([4, 4]);
-    actx.strokeStyle = 'rgba(255, 77, 61, 0.75)';
     actx.beginPath();
     actx.moveTo(AX(-0.5), AZ(-10)); actx.lineTo(AX(-0.5), AZ(10));
     actx.moveTo(AX(0.5), AZ(-10)); actx.lineTo(AX(0.5), AZ(10));
+    actx.lineWidth = HALO;
+    actx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
+    actx.stroke();
+    actx.lineWidth = 1;
+    actx.strokeStyle = 'rgba(255, 77, 61, 0.75)';
     actx.stroke();
     // The row shown in the section, over a black halo like the labels: it crosses the map's
     // lightest colours when the source is deep and its pattern broad.
