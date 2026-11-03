@@ -659,7 +659,90 @@
       </div>
     </div>
 
-<!-- FIG-WRITE: Fig. 4 stage goes here -->
+    <!-- Interactive figure (assets/js/fig-write.js): Fig. 1's toy model run both ways -->
+    <figure class="stage" data-fig="write" id="fig-write" aria-labelledby="fig4-title">
+      <div class="wrap stage-inner">
+        <div class="stage-head">
+          <h3 id="fig4-title">Writing back through the same contacts</h3>
+          <p class="stage-tag">Toy model, synthetic data</p>
+        </div>
+        <p class="stage-intro">Pick a patch of cortex. In the Record view the contacts record it; in the Stimulate view the same contacts pass current to stimulate it. By reciprocity, what a contact records from a patch and how hard it pushes that patch are the same number, so the recording doubles as a recipe: played back as currents, it pushes the patch harder than any other pattern with the same budget.</p>
+        <div class="views views-pair">
+          <div class="view">
+            <p class="view-title"><strong>Record</strong> the patch drives the contacts</p>
+            <div class="view-stage">
+              <canvas class="fig-canvas write-canvas" data-write-canvas="record" role="img" aria-label="Cross-section of the cortical fold from the first figure, with a strip of electrode contacts on the surface and one patch of cortex acting as a source. The contacts are coloured by what they record from the patch; the text below gives the values."></canvas>
+              <div class="fig-handle" data-write-handle="record" aria-hidden="true" hidden></div>
+            </div>
+            <div class="view-key">
+              <div class="key-pair">
+                <span class="cbar" aria-hidden="true"><span>−</span><span class="cbar-ramp" data-ramp="contacts"></span><span>+</span></span>
+                <p class="view-note">Contacts: the recording, then the current, each scaled to its strongest contact</p>
+              </div>
+            </div>
+          </div>
+          <div class="view">
+            <p class="view-title"><strong>Stimulate</strong> the contacts drive the patch</p>
+            <div class="view-stage">
+              <canvas class="fig-canvas write-canvas" data-write-canvas="stim" role="img" aria-label="The same cross-section, with the same contacts passing current. White lines show current flowing through the tissue, and the cortex is coloured by how strongly the current pushes each patch along its columns; the text below gives the values."></canvas>
+              <div class="fig-handle" data-write-handle="stim" aria-hidden="true" hidden></div>
+              <div class="contact-pads" data-write-pads aria-hidden="true" hidden></div>
+            </div>
+            <div class="view-key">
+              <div class="key-pair">
+                <span class="cbar" aria-hidden="true"><span>−</span><span class="cbar-ramp" data-ramp="push"></span><span>+</span></span>
+                <p class="view-note">Push along the columns, log scale. Warm: field toward the white matter, which depolarizes cell bodies (first approximation). Cool: the opposite.</p>
+              </div>
+              <div class="key-pair">
+                <svg class="key-flow" width="30" height="10" viewBox="0 0 30 10" aria-hidden="true" focusable="false"><path d="M1 5h25M21.5 1.5 27 5l-5.5 3.5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+                <p class="view-note">Current flow</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <div class="control">
+            <label class="control-label" for="fig4-position">Patch along the cortex</label>
+            <input class="range" id="fig4-position" type="range" min="0" max="1000" step="1" value="318" aria-valuetext="Sulcal wall, 7.5 mm below the electrodes" data-write-slider>
+            <div class="jumps" role="group" aria-label="Jump to a location">
+              <span aria-hidden="true">Jump to</span>
+              <button type="button" class="chip-btn" data-preset="crown">gyral crown</button>
+              <button type="button" class="chip-btn" data-preset="wall" data-active>sulcal wall</button>
+              <button type="button" class="chip-btn" data-preset="fundus">fundus</button>
+            </div>
+          </div>
+          <fieldset class="control">
+            <legend class="control-label">Current pattern</legend>
+            <p class="control-hint" data-out="hint">Every pattern gets the same budget: the same sum of squared currents.</p>
+            <div class="seg">
+              <label><input type="radio" name="fig4-pattern" value="playback" checked><span>Play back the recording</span></label>
+              <label><input type="radio" name="fig4-pattern" value="nearest"><span>Nearest contact</span></label>
+              <label><input type="radio" name="fig4-pattern" value="own"><span>Your own</span></label>
+            </div>
+            <div class="pattern-contacts" data-write-row role="group" aria-label="Contacts, left to right. Each press cycles anode, cathode, off." hidden><div class="contact-chips" data-write-chips></div></div>
+            <button class="btn reset" type="button" data-write-reset>Reset figure</button>
+          </fieldset>
+        </div>
+
+        <div class="readouts">
+          <div>
+            <p class="explain" data-out="explain">In the sulcal wall the columns lie sideways, so the recording is split: positive on one side of the fold, negative on the other. Played back, the current crosses the fold and pushes the patch harder than any single contact can. The crown right under a contact is pushed far harder than the patch, and the facing wall is pushed the opposite way.</p>
+          </div>
+          <dl class="stats">
+            <div><dt>Patch</dt><dd data-out="region">Sulcal wall</dd></div>
+            <div><dt>Depth below the electrodes</dt><dd data-out="depth">7.5&nbsp;mm</dd></div>
+            <div><dt>Recorded peak, versus a crown source</dt><dd data-out="peak">2.1%</dd></div>
+            <div><dt>Push on the patch, versus one contact over a crown</dt><dd data-out="push">4.4%</dd></div>
+            <div><dt>This pattern, versus the strongest possible with the same budget</dt><dd data-out="score">100%</dd></div>
+            <div><dt>Strongest push on cortex more than 3&nbsp;mm away</dt><dd data-out="worst">11× the patch</dd></div>
+          </dl>
+          <p class="visually-hidden" aria-live="polite" data-out="live"></p>
+        </div>
+        <noscript><p class="stage-intro">The interactive figure needs JavaScript; the text above describes its default view.</p></noscript>
+        <figcaption class="stage-caption">Toy model: the fold, contacts and uniform conductor of the first figure, with no noise. Recording: one point current dipole along the cortical normal. Stimulation: point currents at the contacts, with any net current returning through a distant electrode; every pattern is scaled to the same sum of squared currents. “Push” is the part of the electric field along the cortical columns; pointing from the surface toward the white matter, it depolarizes pyramidal cell bodies, a common first approximation. Real stimulation also acts on axons and depends on pulse shape. The figure illustrates a long-term interest; it is not a model, data or result of my projects.</figcaption>
+      </div>
+    </figure>
 
     <div class="wrap">
       <p class="directions-close">If you work on any part of this loop, I’d be glad to <a href="#contact">hear from you</a>.</p>
@@ -933,6 +1016,7 @@
 <script src="assets/js/figure-kit.js" defer></script>
 <script src="assets/js/fig-speech.js" defer></script>
 <script src="assets/js/fig-behavior.js" defer></script>
+<script src="assets/js/fig-write.js" defer></script>
 <script src="assets/js/directions.js" defer></script>
 </body>
 </html>
