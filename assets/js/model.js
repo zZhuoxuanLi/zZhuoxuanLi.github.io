@@ -203,10 +203,14 @@
 
     // Sparse Bayesian learning, one time sample, convex-bounding updates:
     // gamma_n <- |x_n| / sqrt(l_n' Sigma^-1 l_n).
+    // The noise allowance lam must cover what the candidates cannot fit: a source between
+    // two of them leaves up to ~0.04% of the signal power in Fig. 1. With almost none
+    // (1e-6), exact fits by nine scattered candidates are local minima of the cost, and
+    // from the flat start a few source positions settled in one, 20-27 mm off.
     function sparseBayesian(y, iterations) {
       var yy = 0, m, k, n;
       for (m = 0; m < M; m++) yy += y[m] * y[m];
-      var lam = 1e-6 * yy / M + 1e-300;
+      var lam = 1e-3 * yy / M + 1e-300;
       var gam = new Float64Array(N);
       gam.fill(yy / trace);
       var x = new Float64Array(N), Sigma = [], Si, w;

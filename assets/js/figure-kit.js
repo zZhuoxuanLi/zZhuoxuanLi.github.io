@@ -128,17 +128,43 @@
   }
 
   // Pointer scrubbing on a canvas: toValue(event) maps a pointer to a value.
+  // A mouse scrubs from the press. A finger or pen may be starting a page scroll (the
+  // canvases allow vertical panning, and the browser only decides after the press), so it
+  // scrubs once it has moved clearly sideways, and a tap sets the value on release; a
+  // vertical swipe, or one the browser takes over with pointercancel, changes nothing.
+  var SLOP = 8;   // px a touch moves before it counts as a scrub or a scroll
   function scrub(canvas, toValue, onValue, onEnd) {
-    var active = false;
+    var active = false, scrubbing = false, x0 = 0, y0 = 0;
     canvas.addEventListener('pointerdown', function (event) {
       if (event.button !== undefined && event.button > 0) return;
       active = true;
+      scrubbing = event.pointerType !== 'touch' && event.pointerType !== 'pen';
+      x0 = event.clientX;
+      y0 = event.clientY;
       try { canvas.setPointerCapture(event.pointerId); } catch (e) { /* capture is a nicety */ }
+      if (scrubbing) onValue(toValue(event));
+    });
+    canvas.addEventListener('pointermove', function (event) {
+      if (!active) return;
+      if (!scrubbing) {
+        var dx = Math.abs(event.clientX - x0), dy = Math.abs(event.clientY - y0);
+        if (dx <= SLOP && dy <= SLOP) return;
+        if (dx <= dy) { active = false; return; }   // a vertical swipe: leave it to the page
+        scrubbing = true;
+      }
       onValue(toValue(event));
     });
-    canvas.addEventListener('pointermove', function (event) { if (active) onValue(toValue(event)); });
     ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (name) {
-      canvas.addEventListener(name, function () { if (active) { active = false; if (onEnd) onEnd(); } });
+      canvas.addEventListener(name, function (event) {
+        if (!active) return;
+        active = false;
+        if (!scrubbing) {
+          if (name !== 'pointerup') return;   // taken over by the page before it moved: nothing applied
+          onValue(toValue(event));            // a tap
+        }
+        scrubbing = false;
+        if (onEnd) onEnd();
+      });
     });
   }
 

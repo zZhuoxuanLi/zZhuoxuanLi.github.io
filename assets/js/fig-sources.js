@@ -54,7 +54,13 @@
     crown: 'On a gyral crown the source points straight at the array, so the contacts nearest it record a strong, focal signal.',
     lip: 'At the lip of the sulcus the cortex bends away from the array. The source tilts, and its signal weakens and spreads across contacts.',
     wall: 'In the sulcal wall the source points sideways. The array records a weak, split pattern, positive on one side of the fold and negative on the other.',
-    fundus: 'At the fundus the source points toward the array again, but from deep in the fold, so the array records only a faint, broad bump.'
+    fundus: 'At the fundus the source points toward the array again, but from deep in the fold, so the array records only a faint, broad bump.',
+    // The lip and the fundus are curved, so near their ends the source turns past what
+    // their sentences say; these keep the text in step with the orientation readout there.
+    'lip facing': 'At the lip of the sulcus the cortex has only begun to bend, so the source still points almost straight at the array and the contacts nearest it record a strong, focal signal.',
+    'lip sideways': 'At the lip of the sulcus the cortex turns down into the fold. The source already points sideways, so the array records a weak, split pattern.',
+    'fundus sideways': 'Where the fundus meets the wall the source still points sideways, so from this deep the array records only a faint, split pattern.',
+    'fundus tilted': 'In the fundus the cortex curves round the bottom of the fold, so the source tilts. From this deep the array records only a faint pattern, part way between a split and a bump.'
   };
   var METHOD_NOTE = {
     mne: 'Minimum-norm estimation picks the pattern with the least total activity that explains the recordings. Shallow sources need less activity to produce the same signal, so deep activity tends to be spread toward the surface.',
@@ -448,8 +454,9 @@
     var src = m.src, region = src.part || 'crown';
     var depth = ELEC_Y - src.y;
     var angle = Math.round(Math.acos(Math.max(-1, Math.min(1, src.ny))) / DEG);
-    var orient = angle <= 8 ? 'facing the array, ' + angle + '°' : Math.abs(angle - 90) <= 8 ? 'sideways, ' + angle + '°' : 'tilted, ' + angle + '°';
-    if (out.explain) out.explain.textContent = EXPLAIN[region];
+    var aim = angle <= 8 ? 'facing' : Math.abs(angle - 90) <= 8 ? 'sideways' : 'tilted';
+    var orient = (aim === 'facing' ? 'facing the array' : aim) + ', ' + angle + '°';
+    if (out.explain) out.explain.textContent = EXPLAIN[region + ' ' + aim] || EXPLAIN[region];
     if (out.region) out.region.textContent = REGION_NAME[region];
     if (out.depth) out.depth.textContent = depth.toFixed(1) + ' mm';
     if (out.orient) out.orient.textContent = orient;
@@ -483,11 +490,28 @@
   function requestRender() { if (!queued) queued = window.requestAnimationFrame(render); }
   function refreshText() { updateReadout(compute()); }
 
+  function sliderStep(s) { return String(Math.round(1000 * (s - sLo) / (sHi - sLo))); }
   function setS(s, origin) {
     state.s = Math.min(sHi, Math.max(sLo, s));
-    if (slider && origin !== 'slider') slider.value = String(Math.round(1000 * (state.s - sLo) / (sHi - sLo)));
+    if (slider && origin !== 'slider') slider.value = sliderStep(state.s);
     refreshText();
     requestRender();
+  }
+
+  // A browser can bring back the method and position a visitor chose (Back without the
+  // back/forward cache, a restored session, a Firefox reload) without firing change or
+  // input events. Applies what the controls show; returns whether anything changed.
+  function applyControls() {
+    var method = state.method, changed = false;
+    methodInputs.forEach(function (input) { if (input.checked) method = input.value; });
+    if (method !== state.method) { state.method = method; changed = true; }
+    // The slider only says where the source is if it moved off the step that state.s
+    // rounds to; otherwise keep the exact position (the presets lie between steps).
+    if (slider && slider.value !== sliderStep(state.s)) {
+      state.s = sLo + (sHi - sLo) * Number(slider.value) / 1000;
+      changed = true;
+    }
+    return changed;
   }
 
   var tween = 0;
@@ -598,9 +622,14 @@
     var a = layoutSection(), b = layoutArray();
     if (a && b) render();
   }
-  if (slider) slider.value = String(Math.round(1000 * (state.s - sLo) / (sHi - sLo)));
+  applyControls();
+  if (slider) slider.value = sliderStep(state.s);
   refreshText();
   layout();
+  // Chromium restores the controls after load, just before pageshow.
+  window.addEventListener('pageshow', function () {
+    if (applyControls()) { refreshText(); requestRender(); }
+  });
   if ('ResizeObserver' in window) {
     var pending = 0;
     var ro = new ResizeObserver(function () {

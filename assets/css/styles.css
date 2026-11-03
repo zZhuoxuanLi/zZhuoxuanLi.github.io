@@ -417,12 +417,17 @@ details[open] > summary .pm::after { transform: rotate(0deg); }
 .views { display: grid; gap: var(--s5); }
 @media (min-width: 1000px) { .views { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; } }
 .view { position: relative; min-width: 0; }
-.view-stage { position: relative; }
+.view-stage { position: relative; container-type: inline-size; }
 .view-title { margin-bottom: var(--s2); font: 400 var(--t-label)/1.4 var(--mono); color: var(--v-ink-3); }
 .view-title strong { font-weight: 700; color: var(--v-ink-2); }
 .view canvas { display: block; width: 100%; }
-.fig-canvas { height: 340px; touch-action: pan-y; -webkit-tap-highlight-color: transparent; cursor: default; }
-.array-canvas { height: 220px; }
+/* Fig. 1 views take the heights fig-sources.js gives them, so nothing shifts when it runs: the
+   section shows 21.4 mm of depth at 1/40 of its width per mm, at most 17 px per mm, or 1/28 of
+   the width below 560 px (the script rounds the width); the array map is 39 by 21 mm.
+   Browsers without container units keep a fixed section height. */
+.fig-canvas { height: 340px; height: min(53.5cqi, 364px); touch-action: pan-y; -webkit-tap-highlight-color: transparent; cursor: default; }
+@container (width < 559.5px) { .fig-canvas { height: 76.4286cqi; } }
+.array-canvas { aspect-ratio: 39 / 21; }
 .fig-handle { position: absolute; left: 0; top: 0; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; touch-action: none; cursor: grab; }
 .fig-handle.is-dragging { cursor: grabbing; }
 .view-note { margin-top: var(--s2); font: 400 var(--t-label)/1.45 var(--mono); color: var(--v-ink-3); }
