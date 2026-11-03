@@ -151,7 +151,15 @@
     var out = [], i;
     if (!n) return out;
     if (PARTS[key].chord) {
-      for (i = 0; i < n; i++) out.push([g.cx + g.R * (1 - (i + 1) / (n + 1)), g.cy]);
+      var xs = [];
+      for (i = 0; i < n; i++) xs.push(g.cx + g.R * (1 - (i + 1) / (n + 1)));
+      // On a small ring the last of those steps reaches "eyes and ears" under the chord. Then the
+      // marks share the stretch between that label and the world's circle, if they fit there.
+      var lo = g.viaRight + 3 + 7.5, hi = g.cx + g.R - 5.5 - 3 - 7.5;
+      if (xs[n - 1] - 7.5 < g.viaRight + 3 && hi - lo >= (n - 1) * 17) {
+        for (i = 0; i < n; i++) xs[i] = n > 1 ? hi - (hi - lo) * i / (n - 1) : (lo + hi) / 2;
+      }
+      xs.forEach(function (x) { out.push([x, g.cy]); });
       return out;
     }
     var a0 = PARTS[key].arcs[0][0], a1 = PARTS[key].arcs[PARTS[key].arcs.length - 1][1];
@@ -312,6 +320,7 @@
     // the arc, and the part's name and time word inside the ring.
     var sz = g.sz, via = dirs.close ? dirs.close.via : '';
     var viaW = measure('lp-via', via), viaX = Math.max((tieX + cx) / 2, tieX + 6 + viaW / 2);
+    g.viaRight = via ? viaX + viaW / 2 : -Infinity;   // the marks on the chord keep clear of it
     ORDER.forEach(function (key) {
       var dir = dirs[key];
       if (!dir) return;
@@ -406,6 +415,12 @@
     if (svg) stage.replaceChild(next, svg); else stage.insertBefore(next, meter);
     svg = next;
     geom = g;
+    // What a mark's tooltip should keep clear of, weighted by how much hiding it costs: the other
+    // marks most, then the points' names round the ring, least the parts' names inside it.
+    g.keep = Array.prototype.map.call(svg.querySelectorAll('text'), function (t) {
+      var b = t.getBBox(), outer = /lp-point|lp-sub/.test(t.getAttribute('class'));
+      return { l: b.x, t: b.y, r: b.x + b.width, b: b.y + b.height, k: outer ? 3 : 0.3 };
+    }).concat(marks.map(function (m) { return { l: m.x - 8, t: m.y - 8, r: m.x + 8, b: m.y + 8, k: 8, m: m }; }));
     stage.classList.add('is-drawn');
     if (refocus) {
       var again = svg.querySelector('.lp-link[data-h="' + refocus + '"]');
@@ -426,11 +441,34 @@
     }
     tip.textContent = m.label;
     tip.hidden = false;
-    // Toward the ring's open middle, so it never covers the points' labels outside.
-    tip.classList.toggle('is-below', m.y <= geom.cy + 1);
-    var half = tip.offsetWidth / 2;
-    tip.style.left = Math.max(half + 4, Math.min(geom.W - half - 4, m.x)) + 'px';
-    tip.style.top = m.y + 'px';
+    // No wider than the ring, so that on a small ring it can sit inside it.
+    tip.style.maxWidth = 'min(17rem, 80vw, ' + Math.round(1.6 * geom.R) + 'px)';
+    // Places near the mark, nearest first: toward the ring's open middle (below a mark on the upper
+    // half or the chord, above one on the lower half), 15px off and then a step further; the other
+    // way; then level with the mark, on its inner side and its outer side. Each is centred on the
+    // mark, on the ring's centre line, or leans from the mark toward it. The place that hides least
+    // (weighted as in draw) and stays on the drawing wins; a tie keeps the nearer place.
+    var w = tip.offsetWidth, h = tip.offsetHeight, down = m.y <= geom.cy + 1, left = m.x < geom.cx, best = null;
+    var lean = left ? m.x - 16 : m.x + 16 - w;        // from the mark toward the middle
+    var inner = left ? m.x + 15 : m.x - 15 - w;       // level with the mark, on the middle's side
+    var outer = left ? m.x - 15 - w : m.x + 15;       // level with the mark, on the edge's side
+    var places = [];
+    [[down, 15], [down, 40], [!down, 15]].forEach(function (c) {
+      var y = c[0] ? m.y + c[1] : m.y - c[1] - h;
+      places.push([m.x - w / 2, y], [geom.cx - w / 2, y], [lean, y]);
+    });
+    places.push([inner, m.y - h / 2], [outer, m.y - h / 2]);
+    places.forEach(function (p) {
+      var x = Math.max(4, Math.min(geom.W - 4 - w, p[0])), y = p[1];
+      var cost = w * (Math.max(0, -y) + Math.max(0, y + h - geom.H));
+      geom.keep.forEach(function (k) {
+        // Hiding the mark it names would be worst (a place pushed back onto the drawing can be).
+        cost += (k.m === m ? 40 : k.k) * Math.max(0, Math.min(x + w, k.r) - Math.max(x, k.l)) * Math.max(0, Math.min(y + h, k.b) - Math.max(y, k.t));
+      });
+      if (!best || cost < best.cost) best = { x: x, y: y, cost: cost };
+    });
+    tip.style.left = Math.round(best.x) + 'px';
+    tip.style.top = Math.round(best.y) + 'px';
     tipFor = m;
   }
   function hideTip() {
