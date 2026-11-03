@@ -129,6 +129,11 @@ body {
 h1, h2, h3, h4, h5 { margin: 0; font-weight: 700; line-height: 1.12; letter-spacing: -0.012em; text-wrap: balance; }
 /* With larger text, a long word in a large heading breaks rather than widening its column past the screen. */
 .hero h1, .section-head h2, .about-main h2, .contact-intro h2, .pub-title { overflow-wrap: anywhere; }
+/* Phones: with larger text the big headings also stop growing at a share of the screen width, so a
+   word like "neurophysiology" keeps whole instead of breaking. At the default size the cap never binds. */
+@media (max-width: 639.98px) {
+  :root { --t-display: min(clamp(3rem, 1.7rem + 4vw, 5.25rem), 15vw); --t-h2: min(clamp(2rem, 1.45rem + 1.7vw, 3rem), 12vw); }
+}
 p, ul, ol, dl, dd, figure { margin: 0; }
 ul, ol { padding: 0; list-style: none; }
 p, li, dd { text-wrap: pretty; }
@@ -254,7 +259,7 @@ abbr[title] { text-decoration: none; border-bottom: 1px dotted currentColor; cur
     max-height: calc(100vh - var(--header-h) - env(safe-area-inset-top, 0px));
     max-height: calc(100dvh - var(--header-h) - env(safe-area-inset-top, 0px));
     overflow-y: auto;
-    overscroll-behavior: contain;
+    scroll-padding-block: var(--s2);   /* a link that focus scrolls in keeps its whole ring in view */
     padding: var(--s2) max(var(--gutter), env(safe-area-inset-right, 0px)) var(--s4) max(var(--gutter), env(safe-area-inset-left, 0px));
     background: var(--chrome);
     border-bottom: 1px solid var(--chrome-rule);
@@ -618,7 +623,7 @@ details[open] > summary .pm::after { transform: rotate(0deg); }
 .control-hint { font-size: 0.9375rem; color: var(--v-ink-3); }
 .jumps { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); color: var(--v-ink-3); font-size: 0.9375rem; }
 .chip-btn {
-  min-width: 44px;   /* a one-letter chip ("I") is still a 44px target */
+  position: relative;
   min-height: 44px;
   padding: 0 var(--s4);
   border: 1px solid var(--v-rule-strong);
@@ -629,6 +634,9 @@ details[open] > summary .pm::after { transform: rotate(0deg); }
   cursor: pointer;
   transition: border-color 160ms ease, color 160ms ease, transform 160ms var(--ease-out);
 }
+/* The target reaches 3px past each side, so a one-letter chip ("I") is still 44px wide without
+   widening the chip, which would push Fig. 2's row of words onto two lines on a 375px phone. */
+.chip-btn::after { content: ""; position: absolute; inset: -1px -3px; }
 .chip-btn:hover { border-color: var(--v-yellow); color: var(--v-ink); }
 .chip-btn:active { transform: scale(0.97); }
 .chip-btn[data-active] { border-color: var(--v-yellow); color: var(--v-ink); box-shadow: inset 0 -2px 0 var(--v-yellow); }
@@ -937,7 +945,7 @@ details.is-instant::details-content { transition: none; }
 .js .signals-stage:not(.is-drawn) { min-height: 288px; }
 @container (max-width: 599.98px) { .js .signals-stage:not(.is-drawn) { min-height: 378px; } }
 html:not(.js) .signals { display: none; }   /* drawn by script; without it the entries below say the same */
-.signals-cap { max-width: 52ch; font-size: 0.9375rem; line-height: 1.55; color: var(--ink-3); }
+.signals-cap { max-width: 52ch; font-size: 0.9375rem; line-height: 1.55; color: var(--ink-3); text-wrap: pretty; }
 .sg-grid, .sg-rule { stroke: var(--track, var(--rule)); stroke-width: 1; }
 .sg-now { stroke: var(--contour); stroke-width: 1.5; }
 .sg-now-label { font: 400 12px var(--mono); fill: var(--contour); }
@@ -1085,6 +1093,8 @@ html:not(.js) .signals { display: none; }   /* drawn by script; without it the e
   /* Page breaks: small blocks stay whole, and a heading, a label or a fold's title stays with what
      follows it. (A whole direction is not kept together: that would leave pages half empty.) */
   .section-head, .facts > div, .xp, .pub, .stats, .loop, .direction-q { break-inside: avoid; }
+  .xp:has(.xp-body > div) { break-inside: auto; }   /* the startup entry, five projects long, is nearly a page */
+  .xp-body > div, .contact-grid { break-inside: avoid; }
   h2, h3, h4, h5, .direction-meta, .direction-q summary { break-after: avoid; }
   #publications .section-head { break-after: avoid; }
 }

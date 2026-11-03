@@ -261,10 +261,11 @@
     text(grid, 'sg-now-label', Math.max(minX, Math.min(W - nowW, nx - nowW / 2)), TOP - 8, 'now');
 
     // Bars, row by row and left to right. Each is a link to its entry. The pointer finds it on its
-    // bar, a pixel taller but no wider, so bars that meet keep their 3px apart (the drawn bar lets
-    // the pointer through, as its stroke runs past its ends), and on its label, with a margin
-    // smaller than the gaps kept around it, so no link reaches over another's bar. The focus ring
-    // takes in both and lets the pointer through.
+    // bar, a pixel taller and a pixel past each end, except an end that meets another bar in its
+    // lane, so bars that meet keep their 3px apart (the drawn bar lets the pointer through, as its
+    // stroke runs past its ends), and on its label, with a margin smaller than the gaps kept around
+    // it, so no link reaches over another's bar. The focus ring takes in both and lets the pointer
+    // through.
     var links = [];
     rows.forEach(function (row) {
       row.bars.forEach(function (b) {
@@ -278,7 +279,13 @@
         }
         l = Math.max(1, l - 3); r = Math.min(W - 1, r + 3);
         el('rect', { class: 'sg-ring', x: l, y: top - 3, width: r - l, height: btm - top + 6, rx: 3 }, link);
-        el('rect', { class: 'sg-hit', x: b.a0, y: cy - 5, width: b.a1 - b.a0, height: 10 }, link);
+        var lo = b.a0 - 1, hi = b.a1 + 1;
+        row.bars.forEach(function (o) {
+          if (o === b || o.lane !== b.lane) return;
+          if (Math.abs(b.a0 - o.a1) < 6) lo = b.a0;
+          if (Math.abs(o.a0 - b.a1) < 6) hi = b.a1;
+        });
+        el('rect', { class: 'sg-hit', x: lo, y: cy - 5, width: hi - lo, height: 10 }, link);
         if (b.box) el('rect', { class: 'sg-hit', x: b.box.x0 - 1, y: row.y + b.box.y0, width: b.box.x1 - b.box.x0 + 2, height: b.box.y1 - b.box.y0 }, link);
         el('rect', { class: 'sg-bar' + (b.current ? ' is-now' : ''), x: b.a0, y: cy - 4, width: b.a1 - b.a0, height: 8, rx: 4, 'pointer-events': 'none' }, link);
         var cls = 'sg-bar-label' + (b.current ? ' is-now' : '');
