@@ -107,12 +107,40 @@
   }
 
   /* ---------- Deep links open what they point at ---------- */
-  function revealTarget(hash, flash) {
-    if (!hash || hash.length < 2) return;
+  function targetOf(hash) {
+    if (!hash || hash.length < 2) return null;
     var id = hash.slice(1);
     // A malformed escape (a typed or mangled "#%") would throw and stop everything set up below.
     try { id = decodeURIComponent(id); } catch (e) { /* look it up as written */ }
-    var target = document.getElementById(id);
+    return document.getElementById(id);
+  }
+
+  /* Arrival: what a link lands on is ringed for a moment (.is-target in styles.css), so the eye
+     finds it among its neighbours. A project rings its title block and a figure its title row,
+     which fit on screen where the whole would not; an empty alias anchor rings the entry that holds
+     it. A section, the main area or a page-wide wrapper gets none: its heading says where you are. */
+  function arrivalMark(target) {
+    if (target.matches('body, main, section, .wrap')) return null;
+    if (target.matches('.project')) return target.querySelector('.project-head');
+    if (target.matches('.stage')) return target.querySelector('.stage-head');
+    if (!target.children.length && !target.textContent.trim()) return target.parentElement;
+    return target;
+  }
+  var ringed = null, ringTimer = 0;
+  function ring(target) {
+    var mark = arrivalMark(target);
+    if (!mark) return;
+    clearTimeout(ringTimer);
+    if (ringed) ringed.classList.remove('is-target');
+    void mark.offsetWidth;   // restart the ring when the same place is reached again
+    mark.classList.add('is-target');
+    ringed = mark;
+    // Off once it has run (2s), so no ring stays behind: in forced colours it is a still outline.
+    ringTimer = setTimeout(function () { mark.classList.remove('is-target'); ringed = null; }, 2100);
+  }
+
+  function revealTarget(hash, flash) {
+    var target = targetOf(hash);
     if (!target) return;
     var details = target.matches('details') ? [target] : [];
     // Only an experience entry opens its own panel. A section that holds entries (#about, or #main
@@ -120,13 +148,24 @@
     var inner = target.classList.contains('xp') ? target.querySelector(':scope details.xp-more') : null;
     if (inner) details.push(inner);
     var parent = target.closest('details');
+    var shut = parent && !parent.open;
     if (parent) details.push(parent);
-    details.forEach(function (d) { d.open = true; });
-    if (flash && target.classList.contains('xp')) {   // a colour wash, shortened by the reduced-motion rule
-      target.classList.remove('is-target');
-      void target.offsetWidth; // restart the highlight
-      target.classList.add('is-target');
+    details.forEach(function (d) {
+      if (d.open) return;
+      // At once, not unfolding (.is-instant in styles.css): for the first moment of the unfolding,
+      // a block inside a panel has no place on the page, so a scroll to it would go nowhere.
+      d.classList.add('is-instant');
+      d.open = true;
+      void d.offsetHeight;   // take the open state now, without the transition
+      window.requestAnimationFrame(function () { d.classList.remove('is-instant'); });
+    });
+    // Arriving from another page at a block inside a shut panel (#startup-errp), the browser's own
+    // scroll ran while the panel was shut, so the block is brought into view here. (A click opens
+    // the panel before the browser scrolls, so it needs nothing more.)
+    if (shut && !flash) {
+      try { target.scrollIntoView({ block: 'start', behavior: 'instant' }); } catch (e) { target.scrollIntoView(true); }
     }
+    if (flash) ring(target);
   }
   document.addEventListener('click', function (event) {
     var link = event.target.closest('a[href^="#"]');
@@ -134,6 +173,10 @@
   });
   window.addEventListener('hashchange', function () { revealTarget(window.location.hash, true); });
   revealTarget(window.location.hash, false);
+  // A deep link from elsewhere rings its target too, once the page has loaded and is resting on it.
+  function ringArrival() { var target = targetOf(window.location.hash); if (target) ring(target); }
+  if (document.readyState === 'complete') ringArrival();
+  else window.addEventListener('load', ringArrival);
 
   /* ---------- Printing ----------
      Collapsed sections print open, then close again. (The print styles also show their content

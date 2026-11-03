@@ -831,7 +831,97 @@ html:not(.js) .loop-cap { display: none; }   /* it narrates the drawing */
 .xp-more summary { display: inline-flex; align-items: center; gap: var(--s3); min-height: 44px; font-size: var(--t-small); font-weight: 700; color: var(--ink-2); }
 .xp-more[open] summary { color: var(--ink); }
 .xp-body { display: grid; gap: var(--s4); padding-bottom: var(--s2); color: var(--ink-2); }
-.xp.is-target { animation: target-flash 1200ms var(--ease-out) 1; }
+.is-target { outline: 2px solid transparent; outline-offset: 6px; animation: target-flash 2s var(--ease-out) 1, target-ring 2s var(--ease-out) 1; }
+
+/* ---------- Arrivals, the signals chart and the tools ----------
+   Arrival: what an in-page link lands on (an entry, a project's title block, a direction, a block
+   in a panel, a figure's title row) is ringed in the contour colour and washed for a moment, so the
+   eye finds it among its neighbours. main.js adds .is-target and takes it off after two seconds.
+   On viewer black the ring is the viewer's yellow. */
+.stage .is-target, .hero .is-target { --arrive: var(--v-yellow); }
+@keyframes target-ring { 0%, 55% { outline-color: var(--arrive, var(--contour)); } to { outline-color: transparent; } }
+/* A panel clips its content (for its opening animation); while it holds a ringed block, the clip
+   leaves room for the ring. A link that opens a panel opens it at once (main.js adds .is-instant
+   for a frame), so the browser has a place to scroll to. */
+details:has(.is-target)::details-content { overflow-clip-margin: 8px; }
+details.is-instant::details-content { transition: none; }
+/* Links to a panel's blocks, the tools and publications land clear of the bar, as entries and
+   projects do, so the ring shows whole. */
+.xp-body > [id], #tools, .pub { scroll-margin-top: var(--s4); }
+
+/* Signals by year: assets/js/signals.js draws it into .signals-stage from the list of rows there
+   and the data attributes on each li.xp. Its colours are tokens, so the theme toggle restyles it
+   without a redraw. Current roles are filled bars and earlier ones open, as the marks on the loop
+   are; the line in the contour colour is today. */
+.signals { display: grid; gap: var(--s3); min-width: 0; margin: 0 0 var(--s5); container-type: inline-size; }
+.signals-title { font: 400 var(--t-label)/1.4 var(--mono); color: var(--ink-3); }
+.signals-title strong { font-weight: 700; color: var(--ink-2); }
+.signals-stage svg { display: block; width: 100%; height: auto; }
+/* Until the script draws, or if it cannot, the rows stand in the drawing's place as a list. Its
+   height is held (five rows of one lane each), so the entries below do not move when it is drawn. */
+.signals-rows { display: grid; gap: var(--s1); font: 700 var(--t-label)/1.6 var(--mono); color: var(--ink-2); }
+.signals-rows span { font-weight: 400; color: var(--ink-3); }
+.js .signals-stage:not(.is-drawn) { min-height: 288px; }
+@container (max-width: 599.98px) { .js .signals-stage:not(.is-drawn) { min-height: 378px; } }
+html:not(.js) .signals { display: none; }   /* drawn by script; without it the entries below say the same */
+.signals-cap { max-width: 60ch; font-size: 0.9375rem; line-height: 1.55; color: var(--ink-3); }
+.sg-grid, .sg-rule { stroke: var(--track, var(--rule)); stroke-width: 1; }
+.sg-now { stroke: var(--contour); stroke-width: 1.5; }
+.sg-now-label { font: 400 12px var(--mono); fill: var(--contour); }
+.sg-year { font: 400 12px var(--mono); fill: var(--ink-3); }
+.sg-row-name { font: 700 13px var(--mono); fill: var(--ink-2); }
+.sg-row-sub { font: 400 12px var(--mono); fill: var(--ink-3); }
+.sg-link { cursor: pointer; text-decoration: none; }   /* SVG text would take the site's link underline */
+.sg-link:focus-visible { outline: none; }               /* the ring below fits the bar and its label */
+.sg-hit { fill: transparent; }   /* where the pointer finds a bar's link: on the bar and on its label */
+.sg-ring { fill: none; stroke: none; pointer-events: none; }
+.sg-link:focus-visible .sg-ring { stroke: var(--pial); stroke-width: 2; }
+.sg-bar { fill: var(--ground); stroke: var(--ink-3); stroke-width: 1.5; transition: stroke 160ms ease; }
+.sg-bar.is-now { fill: var(--ink); stroke: var(--ink); }
+.sg-bar-label { font: 400 12px var(--mono); fill: var(--ink-2); transition: fill 160ms ease; }
+.sg-bar-label.is-now { font-weight: 700; fill: var(--ink); }
+.sg-link:hover .sg-bar, .sg-link:focus-visible .sg-bar { stroke: var(--ink); stroke-width: 2; }
+.sg-link:hover .sg-bar-label, .sg-link:focus-visible .sg-bar-label { fill: var(--ink); }
+.sg-link.is-tucked .sg-bar-label { visibility: hidden; }   /* no free place: shown over the chart on hover or focus */
+.sg-pop-bg { fill: var(--ground); stroke: var(--rule-strong); stroke-width: 1; }
+/* The chart's words carry a halo of the ground colour, so grid lines pass behind them, not through. */
+.sg-row-name, .sg-row-sub, .sg-year, .sg-now-label, .sg-bar-label { paint-order: stroke; stroke: var(--ground); stroke-width: 3px; stroke-linejoin: round; }
+.sg-row-name { stroke-width: 4px; }
+
+/* About: the tools in three groups, each named in the mono label voice. Where there is room the
+   names share a column and each group reads as one line. */
+.tools { display: grid; gap: var(--s3); }
+.tools li { display: grid; }
+.tools-kind { font: 400 var(--t-label)/1.6 var(--mono); color: var(--ink-3); }
+@media (min-width: 640px) {
+  .tools { grid-template-columns: max-content minmax(0, 1fr); gap: var(--s1) var(--s5); }
+  .tools li { grid-column: 1 / -1; grid-template-columns: subgrid; align-items: baseline; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The ring holds still for its two seconds and then goes, with no fade. The longer selector
+     outranks the shorter wash the motion block gives experience entries. */
+  .is-target, .xp-list > .xp.is-target { animation-duration: 2s; animation-timing-function: steps(1, end); }
+  .sg-bar, .sg-bar-label { transition: none; }
+}
+@media (forced-colors: active) {
+  .is-target { animation: none; outline-color: Highlight; }
+  .sg-grid, .sg-rule { stroke: GrayText; }
+  .sg-now { stroke: CanvasText; }
+  .sg-now-label, .sg-year, .sg-row-name, .sg-row-sub { fill: CanvasText; }
+  .sg-bar { fill: Canvas; stroke: LinkText; }
+  .sg-bar.is-now, .sg-bar-label, .sg-bar-label.is-now { fill: LinkText; }
+  .sg-link:focus-visible .sg-ring { stroke: Highlight; }
+  .sg-pop-bg { fill: Canvas; stroke: CanvasText; }
+  .sg-row-name, .sg-row-sub, .sg-year, .sg-now-label, .sg-bar-label { stroke: Canvas; }
+}
+@media print {
+  .signals { break-inside: avoid; }
+  .sg-pop { display: none; }
+  /* The page prints on white whatever the theme, so the open bars and the halos are white too. */
+  .sg-bar:not(.is-now) { fill: #fff; }
+  .sg-row-name, .sg-row-sub, .sg-year, .sg-now-label, .sg-bar-label { stroke: #fff; }
+}
 @media (min-width: 1000px) {
   .xp { grid-template-columns: 9.5rem minmax(0, 4fr) minmax(0, 6fr); column-gap: clamp(2rem, 3vw, 3.5rem); row-gap: var(--s1); align-items: start; }
   .xp-main { display: contents; }

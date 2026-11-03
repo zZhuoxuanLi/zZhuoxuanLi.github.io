@@ -717,15 +717,39 @@
         </div>
         <dl class="facts-inline">
           <div><dt>Education</dt><dd>B.S., Johns Hopkins University, Whiting School of Engineering, 2022–2026. Biomedical Engineering and Computer Science (double major), minor in Robotics.</dd></div>
-          <div><dt>Tools I use most</dt><dd>Python, PyTorch, TensorFlow, MNE-Python, FreeSurfer, OpenMEEG, SimNIBS, MATLAB, C++ and Unity.</dd></div>
+          <div id="tools"><dt>Tools I use most</dt><dd>
+            <ul class="tools">
+              <li><span class="tools-kind">Head models and signals<span class="visually-hidden">:</span></span> FreeSurfer, OpenMEEG, SimNIBS, MNE-Python</li>
+              <li><span class="tools-kind">Machine learning<span class="visually-hidden">:</span></span> PyTorch, TensorFlow</li>
+              <li><span class="tools-kind">Languages and engines<span class="visually-hidden">:</span></span> Python, MATLAB, C++, Unity</li>
+            </ul>
+          </dd></div>
         </dl>
       </div>
     </div>
 
     <div class="wrap experience" id="experience">
           <h3>Experience</h3>
+          <!-- Signals by year. assets/js/signals.js draws it from this page, so edit the entries and
+               the chart follows: its rows are the list below, in order; each role's bar comes from
+               the attributes on its li.xp: data-signal (one or more row keys), data-from and data-to
+               (YYYY-MM, or "now" for a current role) and data-short (the bar's label). A role with no
+               data-signal has no bar. -->
+          <figure class="signals" data-signals aria-labelledby="signals-title">
+            <p class="signals-title" id="signals-title"><strong>Signals</strong> I have worked with, from outside the body to inside cortex</p>
+            <div class="signals-stage" data-signals-stage>
+              <ol class="signals-rows" data-signals-rows>
+                <li data-row="behavior">Behavior <span>VR, gaze, video</span></li>
+                <li data-row="muscle">Muscle <span>surface EMG</span></li>
+                <li data-row="fmri">Whole brain <span>fMRI</span></li>
+                <li data-row="intracranial">Brain surface and depth <span>ECoG, iEEG</span></li>
+                <li data-row="cortex">Inside cortex <span>Utah arrays, macaque</span></li>
+              </ol>
+            </div>
+            <figcaption class="signals-cap">Each bar is a role below, on the row of the signal it worked with; filled bars are current. Not shown: the 2023 securement device, which recorded no signals.</figcaption>
+          </figure>
           <ol class="xp-list">
-            <li class="xp" id="exp-crc">
+            <li class="xp" id="exp-crc" data-signal="intracranial behavior" data-from="2026-07" data-to="now" data-short="UCSF, now">
               <p class="xp-date">Jul 2026 – present</p>
               <div class="xp-main">
                 <h4 class="xp-role">Clinical Research Coordinator</h4>
@@ -734,7 +758,7 @@
               </div>
             </li>
 
-            <li class="xp" id="exp-cis">
+            <li class="xp" id="exp-cis" data-signal="behavior" data-from="2026-02" data-to="2026-05" data-short="iCrutch">
               <p class="xp-date">Feb – May 2026</p>
               <div class="xp-main">
                 <h4 class="xp-role">Independent course project</h4>
@@ -750,7 +774,7 @@
               </div>
             </li>
 
-            <li class="xp" id="exp-visiting">
+            <li class="xp" id="exp-visiting" data-signal="intracranial" data-from="2025-08" data-to="2026-06" data-short="UCSF: speech">
               <p class="xp-date">Aug 2025 – Jun 2026</p>
               <div class="xp-main">
                 <h4 class="xp-role">Visiting Scholar</h4>
@@ -759,7 +783,7 @@
               </div>
             </li>
 
-            <li class="xp" id="exp-startup">
+            <li class="xp" id="exp-startup" data-signal="intracranial" data-from="2025-05" data-to="2025-08" data-short="Startup">
               <p class="xp-date">May – Aug 2025</p>
               <div class="xp-main">
                 <h4 class="xp-role">Research Assistant</h4>
@@ -768,17 +792,17 @@
                 <details class="xp-more">
                   <summary><span class="pm" aria-hidden="true"></span>All five projects</summary>
                   <div class="xp-body">
-                    <div><h4>Error-potential decoding for BCI monitoring</h4><p>I implemented trial labeling and adaptive segmentation for missing feedback-onset timestamps, compared event-related potentials on correct and incorrect trials to find informative channels, and designed a four-layer dilated convolutional network with two-stage channel selection and class-weighted loss.</p></div>
-                    <div><h4>ECoG source-modeling prototype</h4><p>MRI segmentation, CT/MRI registration, finite-element meshing and cortical source spaces; synthetic recordings for testing inverse methods; STTU-Net for cortical signal reconstruction; interactive 3D diagnostics.</p></div>
-                    <div><h4>Batch-size scaling in ECoG speech decoders</h4><p>Found and characterized how batch size affects accuracy, convergence, stability and generalization in CNN–RNN–CTC speech decoders, using multi-GPU sweeps across powers-of-two batch sizes. Batch-size-informed training reached 15% word error rate, compared with the 25% reference reported in the prior study.</p></div>
-                    <div><h4>Context-dependent phoneme labels</h4><p>Triphone and word- and sentence-position labels to represent coarticulation and linguistic context, with cross-validated pipelines tracking word, character and phoneme error rates. Confusion analysis and t-SNE/UMAP views identified label schemes that reduced systematic phoneme confusions.</p></div>
-                    <div><h4>Text2P</h4><p>A modular Python library that uses espeak-ng to produce ARPAbet and IPA phonemes with timing annotations, validated against reference audio.</p></div>
+                    <div id="startup-errp"><h4>Error-potential decoding for BCI monitoring</h4><p>I implemented trial labeling and adaptive segmentation for missing feedback-onset timestamps, compared event-related potentials on correct and incorrect trials to find informative channels, and designed a four-layer dilated convolutional network with two-stage channel selection and class-weighted loss.</p></div>
+                    <div id="startup-source"><h4>ECoG source-modeling prototype</h4><p>MRI segmentation, CT/MRI registration, finite-element meshing and cortical source spaces; synthetic recordings for testing inverse methods; STTU-Net for cortical signal reconstruction; interactive 3D diagnostics.</p></div>
+                    <div id="startup-batch"><h4>Batch-size scaling in ECoG speech decoders</h4><p>Found and characterized how batch size affects accuracy, convergence, stability and generalization in CNN–RNN–CTC speech decoders, using multi-GPU sweeps across powers-of-two batch sizes. Batch-size-informed training reached 15% word error rate, compared with the 25% reference reported in the prior study.</p></div>
+                    <div id="startup-phoneme"><h4>Context-dependent phoneme labels</h4><p>Triphone and word- and sentence-position labels to represent coarticulation and linguistic context, with cross-validated pipelines tracking word, character and phoneme error rates. Confusion analysis and t-SNE/UMAP views identified label schemes that reduced systematic phoneme confusions.</p></div>
+                    <div id="startup-text2p"><h4>Text2P</h4><p>A modular Python library that uses espeak-ng to produce ARPAbet and IPA phonemes with timing annotations, validated against reference audio.</p></div>
                   </div>
                 </details>
               </div>
             </li>
 
-            <li class="xp" id="exp-brainrecon">
+            <li class="xp" id="exp-brainrecon" data-signal="fmri" data-from="2025-02" data-to="2025-05" data-short="BrainRecon">
               <p class="xp-date">Feb – May 2025</p>
               <div class="xp-main">
                 <h4 class="xp-role">Group leader, BrainRecon</h4>
@@ -793,7 +817,7 @@
               </div>
             </li>
 
-            <li class="xp" id="exp-cibr">
+            <li class="xp" id="exp-cibr" data-signal="cortex" data-from="2024-05" data-to="2024-08" data-short="BETA">
               <p class="xp-date">May – Aug 2024</p>
               <div class="xp-main">
                 <h4 class="xp-role">Research Assistant</h4>
@@ -808,7 +832,7 @@
               </div>
             </li>
 
-            <li class="xp" id="exp-nebi">
+            <li class="xp" id="exp-nebi" data-signal="muscle" data-from="2023-09" data-to="2025-08" data-short="Finger decoding">
               <p class="xp-date">Sep 2023 – Aug 2025</p>
               <div class="xp-main">
                 <h4 class="xp-role">Research Assistant</h4>
@@ -832,7 +856,7 @@
               </div>
             </li>
 
-            <li class="xp" id="exp-wilmer">
+            <li class="xp" id="exp-wilmer" data-signal="behavior" data-from="2023-02" data-to="2024-02" data-short="PLoVR">
               <p class="xp-date">Feb 2023 – Feb 2024</p>
               <div class="xp-main">
                 <h4 class="xp-role">Research Assistant</h4>
@@ -903,6 +927,7 @@
 <!-- If main.js fails to load, the .js mark comes off again: the page then hides the buttons it
      drives and shows the phone menu open, as it does without scripts. -->
 <script src="assets/js/main.js" defer onerror="document.documentElement.classList.remove('js')"></script>
+<script src="assets/js/signals.js" defer></script>
 <script src="assets/js/hero-viewer.js" defer></script>
 <script src="assets/js/fig-sources.js" defer></script>
 <script src="assets/js/figure-kit.js" defer></script>
