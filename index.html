@@ -126,9 +126,9 @@
         <div>
           <h2>Current work</h2>
           <ul>
-            <li><a href="#project-sources">Recovering activity from the brain’s folds</a><span class="brief-meta">Building anatomical forward models and Bayesian inverse methods for electrocorticography (ECoG). Since July 2026.</span></li>
-            <li><a href="#project-speech">Decoding attempted speech from ECoG</a><span class="brief-meta">Co-developed the decoding framework for a clinical-trial participant. Collaboration ongoing.</span></li>
-            <li><a href="#project-behavior">Mapping brain activity to natural behavior</a><span class="brief-meta">Building a framework that pairs intracranial EEG with video, audio and language. Since July 2026.</span></li>
+            <li><a href="#project-sources">Recovering activity from the brain’s folds</a><span class="brief-meta">Building anatomical forward models and Bayesian inverse methods for electrocorticography (ECoG). <span class="nowrap">Since July 2026.</span></span></li>
+            <li><a href="#project-speech">Decoding attempted speech from ECoG</a><span class="brief-meta">Co-developed the decoding framework for a <span class="nowrap">clinical-trial</span> participant. Collaboration ongoing.</span></li>
+            <li><a href="#project-behavior">Mapping brain activity to natural behavior</a><span class="brief-meta">Building a framework that pairs intracranial EEG with video, audio and language. <span class="nowrap">Since July 2026.</span></span></li>
           </ul>
         </div>
         <div>
@@ -153,11 +153,11 @@
     </div>
     <div class="viewer-status">
       <div class="wrap status-inner">
-        <p class="status-hint" data-hero-hint>Move across the cortex to probe it.</p>
+        <p class="status-hint" data-hero-hint>Move across the cortex.</p>
         <dl class="readout">
           <div><dt>Location</dt><dd data-hero-out="region">Sulcal wall</dd></div>
-          <div><dt>Depth below the electrodes</dt><dd data-hero-out="depth">7.5&nbsp;mm</dd></div>
-          <div><dt>Signal at the electrodes</dt><dd data-hero-out="signal">2.1% of a crown source</dd></div>
+          <div><dt>Depth below electrodes</dt><dd data-hero-out="depth">7.5&nbsp;mm</dd></div>
+          <div><dt>Signal at electrodes</dt><dd data-hero-out="signal">2.1% of a crown source</dd></div>
         </dl>
         <p class="visually-hidden" aria-live="polite" data-hero-live></p>
       </div>
@@ -205,9 +205,10 @@
       </div>
 
       <!-- Interactive figure (assets/js/fig-sources.js) -->
-      <figure class="stage" data-fig="sources" aria-labelledby="fig-title">
+      <figure class="stage" data-fig="sources" id="fig-sources" aria-labelledby="fig1-num fig-title">
         <div class="wrap stage-inner">
           <div class="stage-head">
+            <p class="stage-num" id="fig1-num">Fig. 1</p>
             <h4 id="fig-title">What the electrode array records</h4>
             <p class="stage-tag">Toy model, synthetic data</p>
           </div>
@@ -264,7 +265,7 @@
             </div>
             <dl class="stats">
               <div><dt>Location</dt><dd data-out="region">Sulcal wall</dd></div>
-              <div><dt>Depth below the electrodes</dt><dd data-out="depth">7.5&nbsp;mm</dd></div>
+              <div><dt>Depth below electrodes</dt><dd data-out="depth">7.5&nbsp;mm</dd></div>
               <div><dt>Orientation</dt><dd data-out="orient">sideways, 90°</dd></div>
               <div><dt>Peak signal, versus the same source on a crown</dt><dd data-out="peak">2.1%</dd></div>
               <div data-out="error-row" hidden><dt>Estimate peak, distance from the true source</dt><dd data-out="error"></dd></div>
@@ -319,9 +320,10 @@
       </div>
 
       <!-- Interactive figure (assets/js/fig-speech.js) -->
-      <figure class="stage" data-fig="speech" aria-labelledby="fig2-title">
+      <figure class="stage" data-fig="speech" aria-labelledby="fig2-num fig2-title">
         <div class="wrap stage-inner">
           <div class="stage-head">
+            <p class="stage-num" id="fig2-num">Fig. 2</p>
             <h4 id="fig2-title">From brain activity to a sentence</h4>
             <p class="stage-tag">Synthetic example, not participant data</p>
           </div>
@@ -439,9 +441,10 @@
       </div>
 
       <!-- Interactive figure (assets/js/fig-behavior.js) -->
-      <figure class="stage" data-fig="behavior" aria-labelledby="fig3-title">
+      <figure class="stage" data-fig="behavior" aria-labelledby="fig3-num fig3-title">
         <div class="wrap stage-inner">
           <div class="stage-head">
+            <p class="stage-num" id="fig3-num">Fig. 3</p>
             <h4 id="fig3-title">Brain and behavior on one timeline</h4>
             <p class="stage-tag">Synthetic example, not patient data</p>
           </div>
@@ -615,7 +618,7 @@
                   <li>What would continuous control of individual fingers need from cortical recordings that it did not need from muscle signals?</li>
                 </ul>
               </details>
-              <p class="trace"><span class="trace-key">Built on<span class="visually-hidden">:</span></span> <a href="#project-speech" data-mark="current" data-at="decode" data-label="Speech decoding from ECoG · 2025–26, ongoing">speech decoding from ECoG</a> (SfN 2026), <a href="#project-behavior" data-mark="current" data-at="decode" data-label="Brain–behavior mapping · since July 2026">brain–behavior mapping</a> (current project), the <a href="#exp-cibr" data-mark="earlier" data-at="decode" data-label="BETA, macaque M1 and PMd · 2024">BETA autoencoder</a> (macaque M1 and PMd, 2024) and <a href="#exp-nebi" data-mark="earlier" data-at="decode" data-label="Finger decoding from surface EMG · 2023–25">finger decoding from high-density surface EMG</a> (2023–25).</p>
+              <p class="trace"><span class="trace-key">Built on<span class="visually-hidden">:</span></span> <a href="#project-speech" data-mark="current" data-at="decode" data-label="Speech decoding from ECoG · 2025–26, ongoing">speech decoding from ECoG</a> (SfN 2026), <a href="#project-behavior" data-mark="current" data-at="decode" data-label="Brain–behavior mapping · since July 2026"><span class="nowrap">brain–behavior</span> mapping</a> (current project), <a href="#exp-cibr" data-mark="earlier" data-at="decode" data-label="BETA, macaque M1 and PMd · 2024">the BETA autoencoder</a> (macaque M1 and PMd, 2024) and <a href="#exp-nebi" data-mark="earlier" data-at="decode" data-label="Finger decoding from surface EMG · 2023–25">finger decoding from <span class="nowrap">high-density</span> surface EMG</a>&nbsp;(2023–25).</p>
             </div>
           </li>
 
@@ -663,9 +666,10 @@
     </div>
 
     <!-- Interactive figure (assets/js/fig-write.js): Fig. 1's toy model run both ways -->
-    <figure class="stage" data-fig="write" id="fig-write" aria-labelledby="fig4-title">
+    <figure class="stage" data-fig="write" id="fig-write" aria-labelledby="fig4-num fig4-title">
       <div class="wrap stage-inner">
         <div class="stage-head">
+          <p class="stage-num" id="fig4-num">Fig. 4</p>
           <h3 id="fig4-title">Writing back through the same contacts</h3>
           <p class="stage-tag">Toy model, synthetic data</p>
         </div>
@@ -674,7 +678,7 @@
           <div class="view">
             <p class="view-title"><strong>Record</strong>: the patch drives the contacts</p>
             <div class="view-stage">
-              <canvas class="fig-canvas write-canvas" data-write-canvas="record" role="img" aria-label="Cross-section of the cortical fold from the first figure, with a strip of electrode contacts on the surface and one patch of cortex acting as a source. The contacts are colored by what they record from the patch; the text below gives the values."></canvas>
+              <canvas class="fig-canvas write-canvas" data-write-canvas="record" role="img" aria-label="Cross-section of the cortical fold from Fig. 1, with a strip of electrode contacts on the surface and one patch of cortex acting as a source. The contacts are colored by what they record from the patch; the text below gives the values."></canvas>
               <div class="fig-handle" data-write-handle="record" aria-hidden="true" hidden></div>
             </div>
             <div class="view-key">
@@ -734,7 +738,7 @@
           </div>
           <dl class="stats">
             <div><dt>Patch</dt><dd data-out="region">Sulcal wall</dd></div>
-            <div><dt>Depth below the electrodes</dt><dd data-out="depth">7.5&nbsp;mm</dd></div>
+            <div><dt>Depth below electrodes</dt><dd data-out="depth">7.5&nbsp;mm</dd></div>
             <div><dt>Recorded peak, versus a crown source</dt><dd data-out="peak">2.1%</dd></div>
             <div><dt>Push on the patch, versus one contact over a crown</dt><dd data-out="push">4.4%</dd></div>
             <div><dt>This pattern, versus the strongest possible with the same budget</dt><dd data-out="score">100%</dd></div>
@@ -743,7 +747,7 @@
           <p class="visually-hidden" aria-live="polite" data-out="live"></p>
         </div>
         <noscript><p class="stage-intro">The interactive figure needs JavaScript; the text above describes its default view.</p></noscript>
-        <p class="stage-caption">Toy model: the fold, contacts and uniform conductor of <a href="#fig-title">the first figure</a>, with no noise. Recording: one point current dipole along the cortical normal. Stimulation: point currents at the contacts, with any net current returning through a distant electrode; every pattern is scaled to the same sum of squared currents. “Push” is the part of the electric field along the cortical columns; pointing from the surface toward the white matter, it depolarizes pyramidal cell bodies, a common first approximation. Real stimulation also acts on axons and depends on pulse shape. The figure illustrates a <span class="nowrap">long-term</span> interest; it is not a model, data or result of my projects.</p>
+        <p class="stage-caption">Toy model: the fold, contacts and uniform conductor of <a href="#fig-sources">Fig.&nbsp;1</a>, with no noise. Recording: one point current dipole along the cortical normal. Stimulation: point currents at the contacts, with any net current returning through a distant electrode; every pattern is scaled to the same sum of squared currents. “Push” is the part of the electric field along the cortical columns; pointing from the surface toward the white matter, it depolarizes pyramidal cell bodies, a common first approximation. Real stimulation also acts on axons and depends on pulse shape. The figure illustrates a <span class="nowrap">long-term</span> interest; it is not a model, data or result of my projects.</p>
       </div>
     </figure>
 

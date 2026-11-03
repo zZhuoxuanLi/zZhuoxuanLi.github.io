@@ -410,6 +410,8 @@
   // user's arrow keys keep scrolling the page.
   canvas.addEventListener('mousedown', function (event) { event.preventDefault(); });
 
+  // Each hint (this one, the keys hint below and the pointer hint in index.html) stays within 27
+  // characters: on wide screens it shares the status strip's one line with the readout.
   if (hint && coarse.matches) hint.textContent = 'Tap the cortex to probe it.';
 
   /* ---------- Probing with the keyboard ----------
