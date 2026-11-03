@@ -507,6 +507,53 @@ details[open] > summary .pm::after { transform: rotate(0deg); }
 
 .cbar-ramp::after { content: ""; position: absolute; left: 50%; top: -4px; bottom: -4px; width: 1px; margin-left: -0.5px; background: var(--v-ink-3); }
 
+/* ---------- Fig. 4: writing back through the same contacts ---------- */
+/* Two views of one fold, recording and stimulating, side by side from 1000px and stacked below.
+   The canvases take Fig. 1's heights from .fig-canvas (the same fold at the same scale), except
+   in views under 560px, where fig-write.js fits 37 mm across instead of 28 so that all nine
+   contacts stay in view: 21.4 mm deep at 1/37 of the width. */
+.stage-head h3 { font-size: var(--t-h3); letter-spacing: -0.015em; }
+@media (min-width: 1000px) { .views-pair { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+@container (width < 559.5px) { .write-canvas { height: 57.8378cqi; } }
+[data-fig="write"] .control { align-content: start; }
+/* Each readout's label keeps at least half the row: a long value ("−1.5%, the opposite way")
+   wraps under itself instead of squeezing its label to a word a line on phones. */
+[data-fig="write"] .stats div { grid-template-columns: minmax(50%, 1fr) auto; }
+/* The keys before the script paints them, with the same 21 stops: contacts black below 4% of the
+   strongest, then activityMap(v, 0.12 + 0.6 t); the push, activityMap(v, 0.1 + 0.9 t). */
+.cbar-ramp[data-ramp="contacts"] {
+  background: linear-gradient(90deg, #30ace4, #229adc, #1988d4, #1c77c9, #1f66bb, #2058a4, #1f4a8f, #1d3c79, #183160, #122548, #000000,
+    #471012, #5e1316, #76151a, #8c1a1e, #a32021, #ba2622, #ce3421, #df461f, #ee591b, #f96f20); }
+.cbar-ramp[data-ramp="push"] {
+  background: linear-gradient(90deg, #bbf8ff, #86e2f6, #59c9ed, #34afe5, #1f94da, #1b7acb, #1f61b3, #204c92, #1b3871, #13274c, #2a0c0c,
+    #4a1113, #6e1419, #901b1e, #b22422, #d13721, #e9531d, #fa7424, #fe9e46, #ffc671, #ffeba2); }
+.key-flow { flex: none; margin-top: 0.3em; color: var(--v-ink); }
+/* "Your own": the contacts in the Stimulate view become buttons (pointer), mirrored by a row of
+   toggles after the pattern choice (keyboard and screen readers). The row has one column per
+   contact, left to right as on the strip, wherever each toggle gets at least 44px; otherwise
+   five and four, so no toggle is ever left alone on a line. */
+.contact-pads { position: absolute; inset: 0; pointer-events: none; }
+.contact-pad { position: absolute; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; pointer-events: auto; -webkit-tap-highlight-color: transparent; transition: box-shadow 160ms ease; }
+.contact-pad:hover { box-shadow: 0 0 0 1.5px var(--v-yellow); }
+.pattern-contacts { container-type: inline-size; }
+.contact-chips { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: var(--s2); }
+@media (max-width: 519.98px) { .contact-chips { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+@container (width < 460px) { .contact-chips { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.contact-chip { display: grid; place-content: center; justify-items: center; min-width: 0; padding: 4px 2px; line-height: 1.15; }
+.contact-chip .cc-pos { font: 400 0.75rem/1.2 var(--mono); color: var(--v-ink-3); }
+.contact-chip .cc-state { font-weight: 700; color: var(--v-ink); }
+.contact-chip[data-state="anode"] { border-color: #f96f20; box-shadow: inset 0 -3px 0 #f96f20; }    /* the contacts' capped warm end */
+.contact-chip[data-state="cathode"] { border-color: #30ace4; box-shadow: inset 0 -3px 0 #30ace4; }  /* and cool end */
+@media (forced-colors: active) {
+  [data-fig="write"] .cbar-ramp { forced-color-adjust: none; }   /* the keys keep their colours, as the canvases do */
+  .contact-chip[data-state="anode"], .contact-chip[data-state="cathode"] { border-width: 3px; }   /* the coloured edge is gone */
+  /* The chosen pattern and preset are marked by a fill and an inset line, which forced colours
+     drop, and the slider's track is a fill: system colours bring them back. */
+  [data-fig="write"] .seg input:checked + span, [data-fig="write"] .chip-btn[data-active] { forced-color-adjust: none; background: Highlight; border-color: Highlight; color: HighlightText; box-shadow: none; }
+  [data-fig="write"] .range::-webkit-slider-runnable-track { forced-color-adjust: none; background: CanvasText; }
+  [data-fig="write"] .range::-moz-range-track { forced-color-adjust: none; background: CanvasText; }
+}
+
 .controls { display: grid; gap: var(--s5) var(--s7); padding-top: var(--s5); border-top: 1px solid var(--chrome-rule); }
 @media (min-width: 900px) { .controls { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); } }
 .control { display: grid; gap: var(--s3); min-width: 0; margin: 0; padding: 0; border: 0; }
