@@ -303,8 +303,9 @@
       ctx.fillStyle = '#000';
       ctx.fill();
       if (t > 0.02) {
-        var col = M.activityColor(v, 0.35 + 0.65 * t);
-        ctx.fillStyle = 'rgba(' + col[0] + ',' + col[1] + ',' + col[2] + ',' + (0.2 + 0.8 * t).toFixed(3) + ')';
+        // Opaque, as in the figures. The floor keeps a faint contact readable as dark red or navy;
+        // the cap keeps the strongest orange or sky blue, apart from the source's pale yellow core.
+        ctx.fillStyle = 'rgb(' + M.activityMap(v, 0.12 + 0.60 * t).join(',') + ')';
         ctx.fill();
       }
       ctx.lineWidth = 1;

@@ -277,7 +277,7 @@
     ctx.fillRect(0, 0, W, H);
 
     // Track titles say what each stream stands in for: every value here is generated.
-    var tc = '#8a8a8a';
+    var tc = '#969696';
     K.text(ctx, narrow ? 'Behavior labels, stand-in' : 'Behavior labels · stand-in for a vision–language model', 0, L.labels.y - 8, { color: tc, size: fs });
     K.text(ctx, narrow ? 'Wrist speed, generated pose' : 'Wrist speed · from the generated pose', 0, L.speed.y - 8, { color: tc, size: fs });
     K.text(ctx, narrow ? 'Speech envelope' : 'Speech · synthetic sound envelope', 0, L.audio.y - 8, { color: tc, size: fs });
@@ -354,9 +354,9 @@
       var x = TX(m * 60);
       ctx.fillStyle = 'rgba(237, 237, 237, 0.4)';
       ctx.fillRect(Math.round(x), L.axis, 1, m % every ? 3 : 5);
-      if (m % every === 0 && m < 10) K.text(ctx, m + ':00', x, L.axis + 19, { color: '#8a8a8a', align: m === 0 ? 'left' : 'center', size: fs });
+      if (m % every === 0 && m < 10) K.text(ctx, m + ':00', x, L.axis + 19, { color: '#969696', align: m === 0 ? 'left' : 'center', size: fs });
     }
-    K.text(ctx, '10:00', TX(600), L.axis + 19, { color: '#8a8a8a', align: 'right', size: fs });
+    K.text(ctx, '10:00', TX(600), L.axis + 19, { color: '#969696', align: 'right', size: fs });
     ctx.fillStyle = '#ffd23f';
     ctx.fillRect(cx - 1, L.axis - 1, 3, 8);
 
@@ -388,7 +388,7 @@
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
     var b0 = P([-1.05, 0]), b1 = P([1.05, 0.2]);
     ctx.strokeRect(Math.round(b0[0]) + 0.5, Math.round(b0[1]) + 0.5, Math.round(b1[0] - b0[0]), Math.round(b1[1] - b0[1]));
-    K.text(ctx, 'bed', b1[0] + 6, b1[1] - 2, { color: '#8a8a8a', size: fs });
+    K.text(ctx, 'bed', b1[0] + 6, b1[1] - 2, { color: '#969696', size: fs });
     var props = {
       tray: { a: [-0.52, -0.37], b: [0.52, -0.31], label: [0.6, -0.31] },
       table: { a: [0.86, -0.72], b: [1.34, -0.64], label: [0.86, -0.92], cup: [1.06, -0.86, 0.12, 0.14] },
@@ -402,7 +402,7 @@
       // The label keeps inside the canvas: on narrow phones "table, cup" would run past the right edge.
       var propLabel = p.prop === 'table' ? 'table, cup' : p.prop;
       ctx.font = '400 ' + fs + 'px ' + K.mono;
-      K.text(ctx, propLabel, Math.min(pl[0], W - 2 - ctx.measureText(propLabel).width), pl[1] - 4, { color: '#8a8a8a', size: fs });
+      K.text(ctx, propLabel, Math.min(pl[0], W - 2 - ctx.measureText(propLabel).width), pl[1] - 4, { color: '#969696', size: fs });
     }
 
     // Keypoints and the skeleton a pose estimator returns: face points, shoulders, elbows, wrists, hips.
@@ -450,7 +450,7 @@
     ctx.strokeStyle = '#000';
     ctx.stroke();
 
-    K.text(ctx, 'Generated keypoints, not video', 0, 14, { color: '#8a8a8a', size: fs });
+    K.text(ctx, 'Generated keypoints, not video', 0, 14, { color: '#969696', size: fs });
     ctx.fillStyle = '#ffd23f';
     ctx.beginPath();
     ctx.arc(5, H - 9, 4, 0, Math.PI * 2);

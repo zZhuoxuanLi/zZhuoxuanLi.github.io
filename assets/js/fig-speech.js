@@ -178,7 +178,7 @@
     ctx.fillRect(0, 0, W, H);
 
     // Track titles, in the instrument's voice.
-    var titleColor = '#8a8a8a';
+    var titleColor = '#969696';
     K.text(ctx, narrow ? 'Neural features, 16 electrodes' : 'Neural features · 16 electrodes over speech motor cortex', 0, L.raster.y - 8, { color: titleColor, size: fs });
     K.text(ctx, narrow ? 'Decoder: phoneme probabilities' : 'Decoder output · phoneme probabilities, one column per 20 ms', 0, L.post.y - 8, { color: titleColor, size: fs });
     K.text(ctx, 'Words · ' + mode.title, 0, L.strip.y - 8, { color: titleColor, size: fs });
@@ -194,7 +194,7 @@
     // Phoneme probabilities as light on black; the blank row is "no new sound".
     K.raster(ctx, data.postRows, L.post.x, L.post.y, L.post.w, L.post.h, 'gray');
     ROWS.forEach(function (ph, r) {
-      K.text(ctx, ph, L.gutter - 10, L.post.y + (r + 0.5) * L.post.row + 4, { color: r === 0 ? '#8a8a8a' : '#ababab', align: 'right', size: fs });
+      K.text(ctx, ph, L.gutter - 10, L.post.y + (r + 0.5) * L.post.row + 4, { color: r === 0 ? '#969696' : '#ababab', align: 'right', size: fs });
     });
 
     // The current moment: a column across the decoder output and a hairline through every track.
@@ -257,7 +257,7 @@
       var wrong = word !== TARGET[i];
       var ww = K.text(ctx, word, mid, brY + 24, { size: wordFont.size, weight: 700, sans: true, color: wrong ? '#ababab' : '#ededed', align: 'center' });
       if (wrong) {
-        ctx.fillStyle = '#8a8a8a';
+        ctx.fillStyle = '#969696';
         for (var dx = -ww / 2; dx < ww / 2; dx += 4) ctx.fillRect(Math.round(mid + dx), brY + 30, 2, 2);
       }
     });
@@ -267,7 +267,7 @@
       var x = X(s);
       ctx.fillStyle = 'rgba(237, 237, 237, 0.4)';
       ctx.fillRect(Math.round(x), L.axis, 1, 5);
-      K.text(ctx, s === 2 ? '2.0 s' : s.toFixed(1), x, L.axis + 19, { color: '#8a8a8a', align: s === 0 ? 'left' : 'center', size: fs });
+      K.text(ctx, s === 2 ? '2.0 s' : s.toFixed(1), x, L.axis + 19, { color: '#969696', align: s === 0 ? 'left' : 'center', size: fs });
     });
     ctx.fillStyle = '#ffd23f';
     ctx.fillRect(Math.round(cx) - 1, L.axis - 1, 3, 8);

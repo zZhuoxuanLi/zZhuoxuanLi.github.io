@@ -279,6 +279,21 @@
   }
   function activityColor(value, t) { return ramp(value >= 0 ? HOT : COOL, t); }
 
+  /* Opaque maps for activity painted on the viewer's black (rasters, the array map,
+     contacts, Fig. 4), t = |value| / full scale, 0..1. Built in OKLCH: lightness rises at the
+     same even rate on both arms (L 0.13 to 0.94), so a value and its negative are
+     equally salient. The warm arm stays crimson until it is light and turns orange
+     and yellow only above L 0.6, so low values never go brown; the cool arm runs
+     navy, blue, sky, pale cyan. Zero is near black, the viewer's "nothing".
+     Callers shape t with their own transfer curve (a power for maps and rasters, a
+     floor and a cap for contacts); activityColor above stays for colour laid
+     translucently over gray tissue. */
+  var MAP_POS = [[0, [7, 7, 7]], [0.1, [42, 12, 12]], [0.2, [78, 17, 20]], [0.3, [118, 21, 26]], [0.4, [155, 30, 32]], [0.5, [194, 40, 35]],
+    [0.6, [223, 70, 31]], [0.7, [248, 102, 25]], [0.8, [254, 149, 61]], [0.9, [255, 194, 108]], [1, [255, 235, 162]]];
+  var MAP_NEG = [[0, [7, 7, 7]], [0.1, [12, 23, 42]], [0.2, [20, 41, 80]], [0.3, [29, 60, 121]], [0.4, [33, 83, 157]], [0.5, [30, 107, 194]],
+    [0.6, [25, 136, 212]], [0.7, [40, 166, 226]], [0.8, [79, 195, 235]], [0.9, [128, 223, 245]], [1, [187, 248, 255]]];
+  function activityMap(value, t) { return ramp(value >= 0 ? MAP_POS : MAP_NEG, t); }
+
   /* The site's on-screen movement curve, cubic-bezier(0.77, 0, 0.175, 1),
      the same as --ease-in-out in styles.css, for canvas-driven motion. */
   function cubicBezier(p1x, p1y, p2x, p2y) {
@@ -319,6 +334,7 @@
     potential: potential,
     createInverse: createInverse,
     activityColor: activityColor,
+    activityMap: activityMap,
     easeInOut: easeInOut
   };
 })(window);

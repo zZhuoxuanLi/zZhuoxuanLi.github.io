@@ -51,8 +51,13 @@
     return { ctx: ctx, W: w, H: h, dpr: dpr };
   }
 
+  // Activity as an opaque colour on black, for a value in units of `scale`: the 1.3 power
+  // keeps the small values of noise near zero dark, so the structure stands out. One function
+  // for raster() and ramp(), so a key always matches its raster.
+  function activityRGB(v, scale) { return M.activityMap(v, Math.pow(Math.min(1, Math.abs(v) / scale), 1.3)); }
+
   // Paints a rows × cols matrix into a rectangle. kind 'activity' uses the warm/cool
-  // activity ramps (values in units of `scale`); kind 'gray' paints values 0..1 as light.
+  // activity map (values in units of `scale`); kind 'gray' paints values 0..1 as light.
   var scratch = document.createElement('canvas');
   function raster(ctx, rows, x, y, w, h, kind, scale) {
     var nr = rows.length, nc = rows[0].length;
@@ -66,9 +71,8 @@
           a = Math.pow(Math.max(0, Math.min(1, v)), 0.6);
           rgb = [237, 237, 237];
         } else {
-          var t = Math.min(1, Math.abs(v) / scale);
-          rgb = M.activityColor(v, 0.3 + 0.7 * t);
-          a = (v < 0 ? 0.55 : 0.92) * Math.pow(t, 0.9);
+          rgb = activityRGB(v, scale);
+          a = 1;
         }
         d[i] = Math.round(rgb[0] * a); d[i + 1] = Math.round(rgb[1] * a); d[i + 2] = Math.round(rgb[2] * a); d[i + 3] = 255;
       }
@@ -80,8 +84,9 @@
     ctx.restore();
   }
 
-  // Paints a colour key into an element with the same ramp and opacity as raster() over black:
+  // Paints a colour key into an element with the same colours as raster() over black:
   // 'activity' runs from the negative peak through zero to the positive peak, 'gray' from 0 to 1.
+  // (styles.css gives .cbar-ramp these same 21 stops, so the key is right before this runs.)
   function ramp(el, kind) {
     if (!el) return;
     var stops = [];
@@ -91,9 +96,8 @@
         a = Math.pow(f, 0.6);
         rgb = [237, 237, 237];
       } else {
-        var v = f * 2 - 1, t = Math.abs(v);
-        rgb = M.activityColor(v, 0.3 + 0.7 * t);
-        a = (v < 0 ? 0.55 : 0.92) * Math.pow(t, 0.9);
+        rgb = activityRGB(f * 2 - 1, 1);
+        a = 1;
       }
       stops.push('rgb(' + rgb.map(function (c) { return Math.round(c * a); }).join(',') + ') ' + (i * 5) + '%');
     }
@@ -104,7 +108,7 @@
   function text(ctx, s, x, y, opts) {
     opts = opts || {};
     ctx.font = (opts.weight || 400) + ' ' + (opts.size || 13) + 'px ' + (opts.sans ? SANS : MONO);
-    ctx.fillStyle = opts.color || '#8a8a8a';
+    ctx.fillStyle = opts.color || '#969696';
     ctx.textAlign = opts.align || 'left';
     ctx.textBaseline = opts.baseline || 'alphabetic';
     ctx.fillText(s, x, y);

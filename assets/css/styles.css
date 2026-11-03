@@ -16,7 +16,7 @@
   --v-track: #5c5c5c;
   --v-ink: #ededed;
   --v-ink-2: #ababab;
-  --v-ink-3: #8a8a8a;
+  --v-ink-3: #969696;     /* APCA Lc -45.6 on black for the 14px mono labels (#8a8a8a gave -39.6) */
   --v-yellow: #ffd23f;
   --v-red: #ff4d3d;
 
@@ -27,11 +27,16 @@
   --rule-strong: #4c4c4c;
   --ink: #ededed;      /* white matter */
   --ink-2: #ababab;    /* gray matter */
-  --ink-3: #8a8a8a;    /* CSF */
+  --ink-3: #969696;    /* CSF; APCA Lc -45.1 on the ground (#8a8a8a gave -39.0) */
   --contour: #ffd23f;  /* white-matter surface: links, marks */
   --pial: #ff4d3d;     /* pial surface: focus, caret */
   --selection: rgba(255, 210, 63, 0.32);
   --scroll-thumb: #4c4c4c;
+  /* Directions: the one hue added for the research roadmap (violet, OKLCH 0.66 0.17 290).
+     It marks what is ahead (loop arcs, mini-loops, question bullets, the underline of links
+     into the directions), never body text; yellow keeps marking what exists and is current. */
+  --dir: #937cf1;
+  --track: #3a3a3a;    /* the loop's base ring and chart hairlines, between rule and rule-strong */
 
   /* Type */
   --font: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
@@ -70,9 +75,11 @@
     --ink-2: #3c3f3f;
     --ink-3: #575b5b;
     --contour: #7a5b00;
-    --pial: #c4291c;
-    --selection: rgba(196, 41, 28, 0.18);
+    --pial: #b8235f;     /* crimson, not orange-red: with protanopia #c4291c merged with the ochre underline */
+    --selection: rgba(184, 35, 95, 0.18);
     --scroll-thumb: #a3a8a8;
+    --dir: #6d48d1;
+    --track: #bfc3c3;
     color-scheme: light;
   }
 }
@@ -85,9 +92,11 @@
   --ink-2: #3c3f3f;
   --ink-3: #575b5b;
   --contour: #7a5b00;
-  --pial: #c4291c;
-  --selection: rgba(196, 41, 28, 0.18);
+  --pial: #b8235f;
+  --selection: rgba(184, 35, 95, 0.18);
   --scroll-thumb: #a3a8a8;
+  --dir: #6d48d1;
+  --track: #bfc3c3;
   color-scheme: light;
 }
 
@@ -451,7 +460,19 @@ details[open] > summary .pm::after { transform: rotate(0deg); }
 .key-pair .view-note { min-width: 0; }
 .cbar-ramp[data-ramp="gray"]::after { display: none; }   /* the midpoint tick marks zero, which only the −/+ keys have */
 .cbar { display: inline-flex; align-items: center; gap: var(--s2); font: 700 var(--t-small)/1 var(--mono); color: var(--v-ink-2); }
-.cbar-ramp { position: relative; width: 5.5rem; height: 10px; border: 1px solid rgba(255, 255, 255, 0.22); background: linear-gradient(90deg, #a0ecff, #000 50%, #ffe478); }
+/* The keys' colours before the scripts paint them, and without scripts: the same 21 stops (every
+   5%) that figure-kit.js gives Figs. 2-3, fig-sources.js the array map, and figure-kit.js the gray key. */
+.cbar-ramp { position: relative; width: 5.5rem; height: 10px; border: 1px solid rgba(255, 255, 255, 0.22);
+  background: linear-gradient(90deg, #bbf8ff, #72d7f2, #3bb4e6, #1d91d8, #1d6fc5, #21549f, #1d3d7a, #152b54, #0e1b33, #0a0f19, #070707,
+    #190a0a, #320d0e, #521115, #77151a, #9d1f20, #c62c22, #e64f1d, #fb7d2a, #ffb55f, #ffeba2); }
+.cbar-ramp[data-colorbar] {
+  background: linear-gradient(90deg, #8ce4f7, #49bfea, #2299dc, #1c76c9, #205aa7, #1e4282, #172f5d, #10203d, #0b1424, #080c11, #070707,
+    #110808, #240b0b, #3c0f10, #5b1216, #7f171c, #a62121, #cd3421, #ee591c, #fd8e38, #ffca77); }
+.cbar-ramp[data-ramp="gray"] {
+  background: linear-gradient(90deg, #000000, #272727, #3c3c3c, #4c4c4c, #5a5a5a, #676767, #737373, #7e7e7e, #898989, #939393, #9c9c9c,
+    #a6a6a6, #aeaeae, #b7b7b7, #bfbfbf, #c7c7c7, #cfcfcf, #d7d7d7, #dedede, #e6e6e6, #ededed); }
+/* Forced colours leave the canvases as drawn, so the keys that explain them keep their colours. */
+@media (forced-colors: active) { .cbar-ramp, .key-est { forced-color-adjust: none; } }
 /* Track figures (speech decoding, behavior): one canvas of stacked tracks, scrubbed in time.
    The scripts set the exact height, shorter when the canvas itself is under 560px wide (which also
    happens just above 600px and 1000px viewports); these defaults match it so nothing shifts. The
@@ -529,7 +550,7 @@ details[open] > summary .pm::after { transform: rotate(0deg); }
 .legend { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s5); margin-top: var(--s3); font-size: 0.9375rem; color: var(--v-ink-2); }
 .legend span { display: inline-flex; align-items: center; gap: var(--s2); }
 .key { display: inline-block; flex: none; }
-.key-est { width: 28px; height: 10px; border-radius: 2px; background: linear-gradient(90deg, #1e5ee2, #2cb0ec 40%, #d6201c 60%, #f68c1e); }
+.key-est { width: 28px; height: 10px; border-radius: 2px; background: linear-gradient(90deg, #1e6bc2, #28a6e2 40%, #c22823 60%, #f86619); }   /* activity map arms, steps 0.5 and 0.7 */
 .key-true { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--v-ink); }
 .stats { display: grid; gap: var(--s3); align-content: start; }
 .stats div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--s4); padding-bottom: var(--s2); border-bottom: 1px solid var(--chrome-rule); }

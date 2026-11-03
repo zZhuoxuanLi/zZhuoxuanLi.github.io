@@ -121,16 +121,32 @@
       if (i === 0 && move !== false) c.moveTo(X(p.x), Y(p.y)); else c.lineTo(X(p.x), Y(p.y));
     });
   }
-  function rgba(c, a) { return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a.toFixed(3) + ')'; }
+  /* Colours on the opaque activity map (M.activityMap), t = |value| / full scale.
+     The array map takes a 1.5 power, which keeps the far field dark, and stops at 0.92,
+     short of the arms' palest steps (near white), so the peak keeps the hue of its sign.
+     A contact's fill has a floor, so a faint contact still reads as dark red or navy, and
+     a cap, so the strongest stays orange or sky blue, apart from the yellow source marks. */
+  function arrayMapRGB(v, t) { return M.activityMap(v, 0.92 * Math.pow(t, 1.5)); }
+  function contactFill(v, t) { return 'rgb(' + M.activityMap(v, 0.12 + 0.60 * t).join(',') + ')'; }
+  var HALO = 3;   // px: the black stroke under labels and yellow marks on the map, 1 to 1.5 px either side
 
-  // Draws a label and keeps it inside the canvas.
-  function label(c, text, x, y, align, color, size, width) {
+  // Draws a label and keeps it inside the canvas. With `halo`, a black stroke under the
+  // letters keeps a light label legible where it crosses a light part of the array map.
+  function label(c, text, x, y, align, color, size, width, halo) {
     c.font = '400 ' + size + 'px "Atkinson Hyperlegible Mono", ui-monospace, Menlo, Consolas, monospace';
     c.textBaseline = 'middle';
     var w = c.measureText(text).width, pad = 6;
     var left = align === 'center' ? x - w / 2 : align === 'right' ? x - w : x;
     left = Math.max(pad, Math.min(left, width - pad - w));
     c.textAlign = 'left';
+    if (halo) {
+      c.save();
+      c.lineWidth = HALO;
+      c.lineJoin = 'round';
+      c.strokeStyle = '#000';
+      c.strokeText(text, left, y);
+      c.restore();
+    }
     c.fillStyle = color;
     c.fillText(text, left, y);
   }
@@ -279,7 +295,7 @@
       ctx.fillStyle = '#000';
       ctx.fill();
       if (t > 0.02) {
-        ctx.fillStyle = rgba(M.activityColor(val, 0.35 + 0.65 * t), 0.2 + 0.8 * t);
+        ctx.fillStyle = contactFill(val, t);
         ctx.fill();
       }
       ctx.lineWidth = 1.2;
@@ -384,10 +400,9 @@
         var x = aview.x0 + ((i + 0.5) * cell) / k;
         if (x < -18 || x > 18 || z < -10 || z > 10 || !peak) { data[idx + 3] = 0; continue; }
         var v = M.potential(x, ELEC_Y, z, src);
-        var t = Math.min(1, Math.abs(v) / peak);
-        var c = M.activityColor(v, 0.3 + 0.7 * t);
+        var c = arrayMapRGB(v, Math.min(1, Math.abs(v) / peak));
         data[idx] = c[0]; data[idx + 1] = c[1]; data[idx + 2] = c[2];
-        data[idx + 3] = Math.round(255 * 0.8 * Math.pow(t, 0.9));
+        data[idx + 3] = 255;
       }
     }
     amap.ctx.putImageData(amap.img, 0, 0);
@@ -407,7 +422,12 @@
     actx.moveTo(AX(-0.5), AZ(-10)); actx.lineTo(AX(-0.5), AZ(10));
     actx.moveTo(AX(0.5), AZ(-10)); actx.lineTo(AX(0.5), AZ(10));
     actx.stroke();
-    // The row shown in the section.
+    // The row shown in the section, over a black halo like the labels: it crosses the map's
+    // lightest colours when the source is deep and its pattern broad.
+    actx.lineWidth = HALO;
+    actx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
+    actx.strokeRect(AX(-17.6) + 0.5, AZ(-1.6) + 0.5, AX(17.6) - AX(-17.6), AZ(1.6) - AZ(-1.6));
+    actx.lineWidth = 1;
     actx.strokeStyle = 'rgba(255, 210, 63, 0.6)';
     actx.strokeRect(AX(-17.6) + 0.5, AZ(-1.6) + 0.5, AX(17.6) - AX(-17.6), AZ(1.6) - AZ(-1.6));
     actx.restore();
@@ -421,20 +441,27 @@
       actx.fillStyle = '#000';
       actx.fill();
       if (t > 0.03) {
-        actx.fillStyle = rgba(M.activityColor(c.v, 0.35 + 0.65 * t), 0.25 + 0.75 * t);
+        actx.fillStyle = contactFill(c.v, t);
         actx.fill();
       }
+      // A black ring under the white one, so each contact keeps its outline on any colour of the map.
+      actx.lineWidth = 2.6;
+      actx.strokeStyle = 'rgba(0, 0, 0, 0.55)';
+      actx.stroke();
       actx.lineWidth = 1.1;
-      actx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+      actx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
       actx.stroke();
     });
 
-    // Linked crosshair at the source's position along the array.
+    // Linked crosshair at the source's position along the array, haloed too: it runs through the peak.
+    var hairX = Math.round(AX(src.x));
+    actx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    actx.fillRect(hairX - 1, 0, 3, H);
     actx.fillStyle = 'rgba(255, 210, 63, 0.5)';
-    actx.fillRect(Math.round(AX(src.x)), 0, 1, H);
+    actx.fillRect(hairX, 0, 1, H);
 
-    label(actx, 'fold below', AX(1.4), AZ(-9.1), 'left', '#ff8a7e', fs, W);
-    label(actx, 'row in the section', AX(-17.4), AZ(2.6), 'left', '#ffd23f', fs, W);
+    label(actx, 'fold below', AX(1.4), AZ(-9.1), 'left', '#ff8a7e', fs, W, true);
+    label(actx, 'row in the section', AX(-17.4), AZ(2.6), 'left', '#ffd23f', fs, W, true);
 
     if (out.gain) {
       var gain = peak ? V_REF / peak : 1;
@@ -607,13 +634,13 @@
 
   /* ---------- Setup ---------- */
   // Colour key: the array map's own ramp, from the negative peak through zero to the positive peak.
+  // (styles.css gives this key the same 21 stops, so it is right before this runs.)
   var colorbar = fig.querySelector('[data-colorbar]');
   if (colorbar) colorbar.style.backgroundImage = (function () {
     var stops = [];
     for (var i = 0; i <= 20; i++) {
-      var p = i / 10 - 1, t = Math.abs(p);
-      var col = M.activityColor(p, 0.3 + 0.7 * t), alpha = 0.8 * Math.pow(t, 0.9);   // as composited over black in renderArray
-      stops.push('rgb(' + col.map(function (v) { return Math.round(v * alpha); }).join(',') + ') ' + (i * 5) + '%');
+      var p = i / 10 - 1;
+      stops.push('rgb(' + arrayMapRGB(p, Math.abs(p)).join(',') + ') ' + (i * 5) + '%');   // as painted in renderArray
     }
     return 'linear-gradient(90deg, ' + stops.join(', ') + ')';
   })();
