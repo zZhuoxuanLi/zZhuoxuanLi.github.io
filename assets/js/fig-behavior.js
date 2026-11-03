@@ -530,11 +530,35 @@
     return ((event.clientX - rect.left - L.labels.x) / L.labels.w) * N;
   }, function (i) { cancelGlide(); setIndex(i); });
 
+  // A browser can bring back the time and options a visitor chose (Back without the
+  // back/forward cache, a restored session) without firing input or change events.
+  // Applies what the controls show; returns whether anything changed.
+  function applyControls() {
+    var changed = false;
+    function adopt(inputs, key) {
+      inputs.forEach(function (input) {
+        if (input.checked && input.value !== state[key]) { state[key] = input.value; changed = true; }
+      });
+    }
+    adopt(signalInputs, 'signal');
+    adopt(alignInputs, 'align');
+    if (slider) {
+      var k = Math.max(0, Math.min(N - 1, Math.round(Number(slider.value))));
+      if (k !== state.i) { state.i = k; changed = true; }
+    }
+    return changed;
+  }
+
   /* ---------- Setup ---------- */
   K.ramp(fig.querySelector('[data-ramp="activity"]'), 'activity');
+  applyControls();
   signalInputs.forEach(function (input) { input.checked = input.value === state.signal; });
   alignInputs.forEach(function (input) { input.checked = input.value === state.align; });
   if (layout()) draw();
   update(false);
   K.onResize(fig.querySelector('.views'), function () { if (layout()) draw(); });
+  // Chromium restores the controls after load, just before pageshow.
+  window.addEventListener('pageshow', function () {
+    if (applyControls()) { cancelGlide(); update(false); requestRender(); }
+  });
 })();

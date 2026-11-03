@@ -345,11 +345,31 @@
     return ((event.clientX - rect.left - L.raster.x) / L.raster.w) * FRAMES;
   }, function (frame) { cancelGlide(); setFrame(frame); });
 
+  // A browser can bring back the time and language model a visitor chose (Back without the
+  // back/forward cache, a restored session) without firing input or change events.
+  // Applies what the controls show; returns whether anything changed.
+  function applyControls() {
+    var changed = false;
+    modeInputs.forEach(function (input) {
+      if (input.checked && input.value !== state.mode) { state.mode = input.value; changed = true; }
+    });
+    if (slider) {
+      var f = Math.max(0, Math.min(FRAMES - 1, Math.round(Number(slider.value))));
+      if (f !== state.frame) { state.frame = f; changed = true; }
+    }
+    return changed;
+  }
+
   /* ---------- Setup ---------- */
   K.ramp(fig.querySelector('[data-ramp="activity"]'), 'activity');
   K.ramp(fig.querySelector('[data-ramp="gray"]'), 'gray');
+  applyControls();
   modeInputs.forEach(function (input) { input.checked = input.value === state.mode; });
   if (layout()) draw();
   update();
   K.onResize(canvas.parentNode, function () { if (layout()) draw(); });
+  // Chromium restores the controls after load, just before pageshow.
+  window.addEventListener('pageshow', function () {
+    if (applyControls()) { cancelGlide(); update(false); requestRender(); }
+  });
 })();
