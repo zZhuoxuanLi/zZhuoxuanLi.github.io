@@ -129,7 +129,8 @@
     var width = canvas.getBoundingClientRect().width;
     if (!width) return false;
     var narrow = width < 560;
-    var gutter = narrow ? 58 : 98, title = 22, gap = narrow ? 14 : 16;
+    // The wide gutter fits "tongue body" (about 91px in the 13px mono) right-aligned 10px from the tracks.
+    var gutter = narrow ? 58 : 104, title = 22, gap = narrow ? 14 : 16;
     var rowA = narrow ? 6 : 7, rowB = narrow ? 12 : 14, strip = narrow ? 56 : 60, axis = 26;
     var H = title + ELECTRODES * rowA + gap + title + ROWS.length * rowB + gap + title + strip + axis;
     view = K.fit(canvas, H);
@@ -147,6 +148,27 @@
   }
   function X(seconds) { return L.raster.x + (seconds / DURATION) * L.raster.w; }
   function FX(frame) { return L.raster.x + (frame / FRAMES) * L.raster.w; }
+
+  // Lays out a row of labels { left, w } in order, each as near its preferred left as it can be while
+  // staying `gap` apart and inside lo..hi. Labels that would collide move together as one block,
+  // centred on where they wanted to be (least squares, by pooling adjacent violators).
+  function spread(items, gap, lo, hi) {
+    var pools = [], offset = 0, i = 0;
+    items.forEach(function (item) {
+      item.offset = offset;   // the width of the labels before it, with their gaps
+      offset += item.w + gap;
+      pools.push({ sum: item.left - item.offset, n: 1 });
+      while (pools.length > 1 && pools[pools.length - 2].sum * pools[pools.length - 1].n > pools[pools.length - 1].sum * pools[pools.length - 2].n) {
+        var last = pools.pop();
+        pools[pools.length - 1].sum += last.sum;
+        pools[pools.length - 1].n += last.n;
+      }
+    });
+    pools.forEach(function (pool) {
+      var start = Math.max(lo, Math.min(hi - (offset - gap), pool.sum / pool.n));
+      for (var j = 0; j < pool.n; j++, i++) items[i].left = start + items[i].offset;
+    });
+  }
 
   function draw() {
     if (!view) return;
@@ -203,24 +225,37 @@
     // Phonemes at the moment they were emitted, then brackets and the words this mode produces.
     var phY = L.strip.y + 12, brY = L.strip.y + 22;
     if (narrow) {
-      // Too little room to place each phoneme at its moment: show each word's phonemes as one group.
-      TARGET.forEach(function (w, wi) {
-        var group = SOUNDS.map(function (s, i) { return s.word === wi ? (i === MISHEARD ? mode.vowel : s.ph) : null; }).filter(Boolean).join(' ');
-        K.text(ctx, group, (X(WORD_SPAN[wi][0]) + X(WORD_SPAN[wi][1])) / 2, phY, { color: '#ededed', align: 'center', size: fs });
+      // Too little room to place each phoneme at its moment: show each word's phonemes as one group,
+      // centred under the word, but at least a space from the next group on the narrowest phones.
+      ctx.font = '400 ' + fs + 'px ' + K.mono;
+      var groups = TARGET.map(function (w, wi) {
+        var text = SOUNDS.map(function (s, i) { return s.word === wi ? (i === MISHEARD ? mode.vowel : s.ph) : null; }).filter(Boolean).join(' ');
+        var gw = ctx.measureText(text).width;
+        return { text: text, w: gw, left: (X(WORD_SPAN[wi][0]) + X(WORD_SPAN[wi][1])) / 2 - gw / 2 };
       });
+      spread(groups, ctx.measureText(' ').width, 0, L.strip.x + L.strip.w);
+      groups.forEach(function (g) { K.text(ctx, g.text, g.left, phY, { color: '#ededed', size: fs }); });
     } else {
       SOUNDS.forEach(function (s, i) {
         K.text(ctx, i === MISHEARD ? mode.vowel : s.ph, FX(s.frame + 1), phY, { color: '#ededed', align: 'center', size: fs });
       });
     }
+    // The words sit centred under their brackets, spread the same way so they never touch on the narrowest phones.
+    var wordFont = { size: narrow ? 16 : 18, weight: 700, sans: true };
+    K.text(ctx, '', 0, 0, wordFont);   // sets the word font, so the words can be measured before drawing
+    var spots = mode.words.map(function (word, i) {
+      var ww = ctx.measureText(word).width;
+      return { w: ww, left: (X(WORD_SPAN[i][0]) + X(WORD_SPAN[i][1])) / 2 - ww / 2 };
+    });
+    spread(spots, ctx.measureText(' ').width, 0, L.strip.x + L.strip.w);
     mode.words.forEach(function (word, i) {
-      var x0 = X(WORD_SPAN[i][0]), x1 = X(WORD_SPAN[i][1]), mid = (x0 + x1) / 2;
+      var x0 = X(WORD_SPAN[i][0]), x1 = X(WORD_SPAN[i][1]), mid = spots[i].left + spots[i].w / 2;
       ctx.fillStyle = 'rgba(237, 237, 237, 0.35)';
       ctx.fillRect(x0, brY, x1 - x0, 1);
       ctx.fillRect(x0, brY - 4, 1, 5);
       ctx.fillRect(x1 - 1, brY - 4, 1, 5);
       var wrong = word !== TARGET[i];
-      var ww = K.text(ctx, word, mid, brY + 24, { size: narrow ? 16 : 18, weight: 700, sans: true, color: wrong ? '#ababab' : '#ededed', align: 'center' });
+      var ww = K.text(ctx, word, mid, brY + 24, { size: wordFont.size, weight: 700, sans: true, color: wrong ? '#ababab' : '#ededed', align: 'center' });
       if (wrong) {
         ctx.fillStyle = '#8a8a8a';
         for (var dx = -ww / 2; dx < ww / 2; dx += 4) ctx.fillRect(Math.round(mid + dx), brY + 30, 2, 2);

@@ -321,7 +321,7 @@
           </div>
           <p class="stage-intro">Move through one attempt to say a sentence. A decoder turns neural features into phoneme probabilities; language models turn the phonemes into words.</p>
           <div class="views">
-            <div class="view">
+            <div class="view track-view">
               <p class="view-title"><strong>Attempt</strong> over 2.4 seconds</p>
               <canvas class="track-canvas speech-canvas" data-speech-canvas role="img" aria-label="One synthetic attempt to say “I need some water”, as three stacked tracks over 2.4 seconds: neural features on 16 electrodes grouped by lips, tongue tip, tongue body and larynx; the decoder’s phoneme probabilities in 20 millisecond steps; and the decoded phonemes grouped into words."></canvas>
               <div class="view-key">
@@ -441,7 +441,7 @@
           </div>
           <p class="stage-intro">Move through ten minutes of a made-up hospital-room recording, then try two checks in the spirit of the project’s controls: account for movement, or shift the streams out of line.</p>
           <div class="views">
-            <div class="view">
+            <div class="view track-view">
               <p class="view-title"><strong>Timeline</strong> of ten minutes</p>
               <canvas class="track-canvas behavior-canvas" data-behavior-canvas role="img" aria-label="Ten minutes of a synthetic recording on one timeline: behavior labels, wrist speed, a speech envelope and six synthetic neural channels. The hand channels follow the wrist, and the speech channels rise while the person talks."></canvas>
               <div class="view-key">
@@ -496,7 +496,7 @@
               <div><dt>Moment</dt><dd data-out="time">3:50</dd></div>
               <div><dt>Behavior label</dt><dd data-out="label">talking</dd></div>
               <div><dt>Speech channels vs “talking” labels, in this example</dt><dd data-out="match">r = 0.92</dd></div>
-              <div><dt>Variance movement explains in this example, hand / speech channels</dt><dd data-out="explained">84% / 4%</dd></div>
+              <div><dt data-out="explained-key">Variance movement explains in this example, hand / speech channels</dt><dd data-out="explained">82% / 2%</dd></div>
             </dl>
             <p class="visually-hidden" aria-live="polite" data-out="live"></p>
           </div>

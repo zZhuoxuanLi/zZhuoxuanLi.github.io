@@ -442,11 +442,15 @@ details[open] > summary .pm::after { transform: rotate(0deg); }
 .cbar { display: inline-flex; align-items: center; gap: var(--s2); font: 700 var(--t-small)/1 var(--mono); color: var(--v-ink-2); }
 .cbar-ramp { position: relative; width: 5.5rem; height: 10px; border: 1px solid rgba(255, 255, 255, 0.22); background: linear-gradient(90deg, #a0ecff, #000 50%, #ffe478); }
 /* Track figures (speech decoding, behavior): one canvas of stacked tracks, scrubbed in time.
-   The scripts set the exact height; these defaults match it so nothing shifts. */
+   The scripts set the exact height, shorter when the canvas itself is under 560px wide (which also
+   happens just above 600px and 1000px viewports); these defaults match it so nothing shifts. The
+   container query tests that same width; the viewport query is the fallback without container queries. */
 .track-canvas { touch-action: pan-y; cursor: ew-resize; -webkit-tap-highlight-color: transparent; }
 .speech-canvas { height: 478px; }
-.behavior-canvas { height: 324px; }
-@media (max-width: 599.98px) { .speech-canvas { height: 428px; } .behavior-canvas { height: 318px; } }
+.behavior-canvas { height: 342px; }
+@media (max-width: 599.98px) { .speech-canvas { height: 428px; } .behavior-canvas { height: 336px; } }
+.track-view { container-type: inline-size; }
+@container (width < 560px) { .speech-canvas { height: 428px; } .behavior-canvas { height: 336px; } }
 .pose-canvas { height: 230px; }
 
 /* The sentence view: what the decoder produced, the target, and the candidates. */
