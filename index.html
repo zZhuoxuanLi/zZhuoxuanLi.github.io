@@ -39,6 +39,9 @@
        and Fig. 1 keeps its text: the default readouts, a note and the caption. -->
   <style>
     .viewer-canvas { background: #000 url("assets/img/slice-still.jpg") 50% 0 / auto 100% no-repeat; }
+    /* Phones see a quarter of the wide image: frame the deep fold and its one-line label, which runs
+       right of the centre, rather than the centre itself. */
+    @media (max-width: 640px) { .viewer-canvas { background-position: 60% 0; } }
     .status-hint { visibility: hidden; }
     .views, .controls, .stage-inner > .stage-intro { display: none; }
   </style>
@@ -134,8 +137,13 @@
 
     <!-- Synthetic slice: the same toy model as the figure below, at overview scale. -->
     <div class="viewer" data-hero-viewer>
-      <canvas class="viewer-canvas" data-hero-canvas role="img" aria-label="Synthetic coronal slice through cortex with three folds and a strip of electrodes resting on the surface. A source moves from the surface into a fold, and the electrodes above it lose most of its signal."></canvas>
+      <canvas class="viewer-canvas" data-hero-canvas role="img" aria-labelledby="hero-slice-desc"></canvas>
       <p class="viewer-label"><span class="viewer-plane"><strong>Coronal view</strong> · </span>Synthetic schematic<span class="viewer-extra">, not patient data</span></p>
+      <!-- Read only through the canvas. Without the script the first names the picture; the script
+           makes the slice a slider for keyboard probing, and both become its description. (No fold
+           count: how many folds show depends on the screen's width.) -->
+      <p id="hero-slice-desc" hidden>Synthetic coronal slice through folded cortex, with a strip of electrodes resting on the surface. A source moves from the surface into a fold, and the electrodes above it lose most of its signal.</p>
+      <p id="hero-slice-keys" hidden>Left and right arrow keys move the source along the cortex; Home and End move it to either edge of the slice.</p>
     </div>
     <div class="viewer-status">
       <div class="wrap status-inner">
@@ -145,6 +153,7 @@
           <div><dt>Depth below electrodes</dt><dd data-hero-out="depth">7.5&nbsp;mm</dd></div>
           <div><dt>Signal at the electrodes</dt><dd data-hero-out="signal">2.1% of a crown source</dd></div>
         </dl>
+        <p class="visually-hidden" aria-live="polite" data-hero-live></p>
       </div>
     </div>
   </section>
