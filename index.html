@@ -7,9 +7,9 @@
 <meta name="description" content="Zhuoxuan Li is a clinical research coordinator in the Chang Lab at UCSF, working on speech brain–computer interfaces, ECoG signal processing and anatomically informed source reconstruction.">
 <meta name="author" content="Zhuoxuan Li">
 
-<!-- Social sharing preview. Link previews need full addresses: tools/make-publish.ps1 -SiteUrl
-     writes them into the uploaded copy (with og:url and a canonical link), so this file keeps
-     relative paths that also work locally. -->
+<!-- Social sharing preview. Link previews need full addresses, so og:url, the canonical link and
+     both preview images name https://zzhuoxuanli.github.io/ in full; change them if the site moves.
+     Elsewhere the page links its own files by relative paths. -->
 <meta property="og:type" content="profile">
 <meta property="og:url" content="https://zzhuoxuanli.github.io/">
 <link rel="canonical" href="https://zzhuoxuanli.github.io/">
@@ -35,7 +35,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400..700&family=Atkinson+Hyperlegible+Next:ital,wght@0,400..800;1,400&display=swap">
 <link rel="stylesheet" href="assets/css/styles.css">
 <noscript>
-  <!-- Without JavaScript the slice shows a still image (tools/slice-still.html; not loaded otherwise),
+  <!-- Without JavaScript the slice shows a still image (assets/img/slice-still.jpg; not loaded otherwise),
        and Fig. 1 keeps its text: the default readouts, a note and the caption. -->
   <style>
     .viewer-canvas { background: #000 url("assets/img/slice-still.jpg") 50% 0 / auto 100% no-repeat; }
@@ -48,7 +48,9 @@
 </noscript>
 
 <script>
-  /* Apply a saved light/dark choice before the first paint. */
+  /* Before the first paint: mark that scripts run (without it, styles.css hides the buttons that
+     need them and shows the phone menu open), and apply a saved light/dark choice. */
+  document.documentElement.classList.add('js');
   try { var t = localStorage.getItem('theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
 </script>
 <script type="application/ld+json">

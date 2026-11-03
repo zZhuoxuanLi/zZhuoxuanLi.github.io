@@ -237,6 +237,16 @@ abbr[title] { text-decoration: none; border-bottom: 1px dotted currentColor; cur
   .nav-list li:last-child a { border-bottom: 0; }
   .nav-list a::after { left: 0; right: auto; width: 1.5rem; bottom: 10px; }
 }
+/* Without scripts (the head script marks <html> with .js) the buttons that need them are hidden,
+   and on narrow screens the menu's links show as an open list under the name, in the page. */
+html:not(.js) .theme-toggle, html:not(.js) .nav-toggle, html:not(.js) .copy-btn { display: none; }
+@media (max-width: 860px) {
+  html:not(.js) .bar { position: static; }   /* the open list is too tall to stay on screen */
+  html:not(.js) .bar-inner { flex-wrap: wrap; row-gap: 0; }
+  html:not(.js) .wordmark { min-height: var(--header-h); }
+  html:not(.js) .site-nav { flex-basis: 100%; }
+  html:not(.js) .nav-list { position: static; display: flex; padding-inline: 0; border-bottom: 0; }
+}
 
 /* ---------- Hero: the viewer ---------- */
 .hero { display: flex; flex-direction: column; background: var(--viewer); color: var(--v-ink); }
@@ -637,5 +647,8 @@ details[open] > summary .pm::after { transform: rotate(0deg); }
   :root { --ground: #fff; --ink: #000; --ink-2: #222; --ink-3: #444; }
   body, .hero, .stage { background: #fff !important; color: #000 !important; }
   .hero *, .stage * { color: #000 !important; }
-  details > *:not(summary) { display: block !important; }
+  /* Collapsed sections print open. A closed <details> hides its content in ::details-content,
+     which a rule on the children can't reach; without the transition it shows at once. (main.js
+     also opens them while printing, for browsers without ::details-content.) */
+  details::details-content { content-visibility: visible; block-size: auto; transition: none; }
 }

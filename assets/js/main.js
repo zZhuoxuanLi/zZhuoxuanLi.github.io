@@ -1,7 +1,7 @@
 /* Site behaviour: theme toggle, mobile menu, current-section link,
-   copy-email button, CV availability, and deep links that open their target.
-   No dependencies. Content lives in index.html; nothing here needs editing
-   for routine updates. */
+   copy-email button, CV availability, deep links that open their target,
+   and printing with collapsed sections open. No dependencies. Content lives
+   in index.html; nothing here needs editing for routine updates. */
 (function () {
   'use strict';
 
@@ -88,22 +88,36 @@
   if ('IntersectionObserver' in window) {
     var visible = {};
     var watched = Object.keys(sectionToLink).map(function (id) { return document.getElementById(id); }).filter(Boolean);
-    var observer = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) { visible[entry.target.id] = entry.isIntersecting; });
+    var lastSection = watched[watched.length - 1];
+    var shown;
+    var update = function () {
       var current = null;
       watched.forEach(function (section) { if (visible[section.id]) current = section.id; });
-      markCurrent(current);
+      // The band below sits 40-45% down the window. On a tall window the last section (short,
+      // with only the footer after it) never reaches it, so at the bottom of the page it is current.
+      if (lastSection && window.innerHeight + window.pageYOffset >= doc.scrollHeight - 2) current = lastSection.id;
+      if (current !== shown) { shown = current; markCurrent(current); }
+    };
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) { visible[entry.target.id] = entry.isIntersecting; });
+      update();
     }, { rootMargin: '-40% 0px -55% 0px' });
     watched.forEach(function (section) { observer.observe(section); });
+    window.addEventListener('scroll', update, { passive: true });   // reaching the bottom may cross no band edge
   }
 
   /* ---------- Deep links open what they point at ---------- */
   function revealTarget(hash, flash) {
     if (!hash || hash.length < 2) return;
-    var target = document.getElementById(decodeURIComponent(hash.slice(1)));
+    var id = hash.slice(1);
+    // A malformed escape (a typed or mangled "#%") would throw and stop everything set up below.
+    try { id = decodeURIComponent(id); } catch (e) { /* look it up as written */ }
+    var target = document.getElementById(id);
     if (!target) return;
     var details = target.matches('details') ? [target] : [];
-    var inner = target.querySelector(':scope details.xp-more');
+    // Only an experience entry opens its own panel. A section that holds entries (#about, or #main
+    // from the skip link) would otherwise open the first panel inside it.
+    var inner = target.classList.contains('xp') ? target.querySelector(':scope details.xp-more') : null;
     if (inner) details.push(inner);
     var parent = target.closest('details');
     if (parent) details.push(parent);
@@ -120,6 +134,21 @@
   });
   window.addEventListener('hashchange', function () { revealTarget(window.location.hash, true); });
   revealTarget(window.location.hash, false);
+
+  /* ---------- Printing ----------
+     Collapsed sections print open, then close again. (The print styles also show their content
+     where the browser allows it, e.g. with scripts off; this covers the other browsers.) */
+  var openedForPrint = [];
+  window.addEventListener('beforeprint', function () {
+    Array.prototype.forEach.call(document.querySelectorAll('details:not([open])'), function (d) {
+      d.open = true;
+      openedForPrint.push(d);
+    });
+  });
+  window.addEventListener('afterprint', function () {
+    openedForPrint.forEach(function (d) { d.open = false; });
+    openedForPrint = [];
+  });
 
   /* ---------- Copy email ---------- */
   var copyStatus = document.querySelector('[data-copy-status]');
