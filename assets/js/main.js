@@ -137,9 +137,14 @@
 
   /* ---------- Printing ----------
      Collapsed sections print open, then close again. (The print styles also show their content
-     where the browser allows it, e.g. with scripts off; this covers the other browsers.) */
+     where the browser allows it, e.g. with scripts off; this covers the other browsers.)
+     Meanwhile they open and close at once (is-printing in styles.css), and the reader is put back
+     where they were: the browser keeps the scroll offset while the panels above it change. */
   var openedForPrint = [];
+  var scrollBeforePrint = null;
   window.addEventListener('beforeprint', function () {
+    scrollBeforePrint = window.pageYOffset;
+    doc.classList.add('is-printing');
     Array.prototype.forEach.call(document.querySelectorAll('details:not([open])'), function (d) {
       d.open = true;
       openedForPrint.push(d);
@@ -148,6 +153,10 @@
   window.addEventListener('afterprint', function () {
     openedForPrint.forEach(function (d) { d.open = false; });
     openedForPrint = [];
+    // Scrolling lays out the closed panels before the class (and with it the animation) goes.
+    if (scrollBeforePrint !== null) window.scrollTo({ top: scrollBeforePrint, behavior: 'instant' });
+    scrollBeforePrint = null;
+    doc.classList.remove('is-printing');
   });
 
   /* ---------- Copy email ---------- */

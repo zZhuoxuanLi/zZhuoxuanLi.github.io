@@ -414,6 +414,7 @@ details[open] > summary .pm::after { transform: rotate(0deg); }
   :root { interpolate-size: allow-keywords; }
   details::details-content { block-size: 0; overflow: clip; transition: block-size 220ms var(--ease-out), content-visibility 220ms allow-discrete; }
   details[open]::details-content { block-size: auto; }
+  .is-printing details::details-content { transition: none; }   /* main.js sets it while printing */
 }
 
 /* ---------- Figure stage (always viewer black) ---------- */

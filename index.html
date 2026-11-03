@@ -791,7 +791,9 @@
 </footer>
 
 <script src="assets/js/model.js" defer></script>
-<script src="assets/js/main.js" defer></script>
+<!-- If main.js fails to load, the .js mark comes off again: the page then hides the buttons it
+     drives and shows the phone menu open, as it does without scripts. -->
+<script src="assets/js/main.js" defer onerror="document.documentElement.classList.remove('js')"></script>
 <script src="assets/js/hero-viewer.js" defer></script>
 <script src="assets/js/fig-sources.js" defer></script>
 <script src="assets/js/figure-kit.js" defer></script>
