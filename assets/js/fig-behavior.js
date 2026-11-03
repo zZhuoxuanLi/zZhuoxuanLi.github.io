@@ -470,21 +470,13 @@
   }
   function update(speak) {
     var t = state.i / RATE, label = SEGMENTS[segmentAt(t + 0.25)].label, variant = VARIANTS[state.align];
-    var removed = state.signal === 'removed';
+    // r describes the speech channels drawn in this mode; the variance pair describes the recorded data.
     var match = 'r = ' + variant.match[state.signal].toFixed(2);
-    // The readouts describe the channels drawn. With movement removed those are what movement left,
-    // so the pair gives the share of variance left rather than the (now zero) share movement explains.
-    var hand = Math.round(100 * variant.r2Hand), speech = Math.round(100 * variant.r2Speech);
-    if (removed) { hand = 100 - hand; speech = 100 - speech; }
-    var explained = hand + '% / ' + speech + '%';
+    var explained = Math.round(100 * variant.r2Hand) + '% / ' + Math.round(100 * variant.r2Speech) + '%';
     if (out.time) out.time.textContent = clock(state.i);
     if (out.label) out.label.textContent = label;
     if (out.match) out.match.textContent = match;
     if (out.explained) out.explained.textContent = explained;
-    if (out['explained-key']) {
-      out['explained-key'].textContent = removed ? 'Variance left after removing movement in this example, hand / speech channels'
-        : 'Variance movement explains in this example, hand / speech channels';
-    }
     if (out.caption) out.caption.textContent = '“' + CAPTIONS[label] + '”';
     if (out.explain) out.explain.textContent = state.align === 'shifted' ? EXPLAIN.shifted : EXPLAIN[state.signal];
     segmentButtons.forEach(function (b) { b.toggleAttribute('data-active', b.getAttribute('data-segment') === label); });
@@ -493,9 +485,8 @@
       slider.setAttribute('aria-valuetext', clock(state.i) + ', ' + label);
     }
     if (speak) {
-      announce(clock(state.i) + ', ' + label + '. In this example, speech channels versus talking labels: ' + match.replace('r = ', 'r ') + '; ' +
-        (removed ? 'with movement removed, the hand channels keep ' + hand + ' percent of their variance and the speech channels ' + speech + ' percent.'
-          : 'movement explains ' + hand + ' percent of the hand channels and ' + speech + ' percent of the speech channels.'));
+      announce(clock(state.i) + ', ' + label + '. In this example, speech channels versus talking labels: ' + match.replace('r = ', 'r ') +
+        '; movement explains ' + Math.round(100 * variant.r2Hand) + ' percent of the hand channels and ' + Math.round(100 * variant.r2Speech) + ' percent of the speech channels.');
     }
   }
 
