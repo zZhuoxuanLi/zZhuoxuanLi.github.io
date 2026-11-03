@@ -182,10 +182,17 @@
 
   function onResize(el, fn) {
     if ('ResizeObserver' in window) {
-      var pending = 0;
+      var pending = 0, lastW = Math.round(el.getBoundingClientRect().width);
       new ResizeObserver(function () {
         if (pending) return;
-        pending = window.requestAnimationFrame(function () { pending = 0; fn(); });
+        pending = window.requestAnimationFrame(function () {
+          pending = 0;
+          // Only a new width changes a figure: the first report, and its own new height, do not.
+          var w = Math.round(el.getBoundingClientRect().width);
+          if (w === lastW) return;
+          lastW = w;
+          fn();
+        });
       }).observe(el);
     } else {
       window.addEventListener('resize', fn);

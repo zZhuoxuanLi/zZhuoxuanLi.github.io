@@ -62,6 +62,10 @@
   }
   if (nav) {
     nav.addEventListener('click', function (event) { if (event.target.closest('a')) setMenu(false); });
+    // Tabbing out of the open menu closes it, so it never covers what takes the focus next.
+    nav.addEventListener('focusout', function (event) {
+      if (nav.hasAttribute('data-open') && event.relatedTarget && !nav.contains(event.relatedTarget)) setMenu(false);
+    });
   }
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape' && navToggle && navToggle.getAttribute('aria-expanded') === 'true') {
@@ -194,6 +198,11 @@
   function ringArrival() { var target = targetOf(window.location.hash); if (target) ring(target); }
   if (document.readyState === 'complete') ringArrival();
   else window.addEventListener('load', ringArrival);
+  // Scrolling turns smooth (html.is-ready in styles.css) only in the frame after load, once the
+  // browser's own scroll to a deep link has landed, so arriving on one does not glide down the page.
+  function allowSmoothScroll() { window.requestAnimationFrame(function () { doc.classList.add('is-ready'); }); }
+  if (document.readyState === 'complete') allowSmoothScroll();
+  else window.addEventListener('load', allowSmoothScroll);
 
   /* ---------- Printing ----------
      Collapsed sections print open, then close again. (The print styles also show their content
@@ -213,10 +222,17 @@
   window.addEventListener('afterprint', function () {
     openedForPrint.forEach(function (d) { d.open = false; });
     openedForPrint = [];
-    // Scrolling lays out the closed panels before the class (and with it the animation) goes.
-    if (scrollBeforePrint !== null) window.scrollTo({ top: scrollBeforePrint, behavior: 'instant' });
+    void doc.offsetHeight;   // lay out the closed panels while is-printing still holds their animation off
+    // signals.js redraws its chart for the screen in its own afterprint listener, which runs after
+    // this one and changes the chart's height, so the reader is put back once every listener has run.
+    var y = scrollBeforePrint;
     scrollBeforePrint = null;
-    doc.classList.remove('is-printing');
+    window.requestAnimationFrame(function () {
+      if (y !== null) {
+        try { window.scrollTo({ top: y, behavior: 'instant' }); } catch (e) { window.scrollTo(0, y); }
+      }
+      doc.classList.remove('is-printing');
+    });
   });
 
   /* ---------- Copy email ---------- */

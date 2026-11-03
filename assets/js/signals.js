@@ -4,7 +4,9 @@
    - the rows, kinds of signal from outside the body to inside cortex, are the
      list in [data-signals-rows] (each sub-label in a span);
    - each role is an li.xp with data-signal (its rows' keys), data-from and
-     data-to (YYYY-MM, or "now") and data-short (its bar's label).
+     data-to (YYYY-MM, or "now") and data-short (its bar's label), and
+     data-place (the place its bar's name gives) where the first sentence
+     of its .xp-org is not one.
    The axis runs from January of the first year listed to the end of the
    current year, and the "now" line and the current bars end at today's date,
    so nothing here goes stale. Each bar links to its entry in the list, which
@@ -56,19 +58,22 @@
     var to = current ? null : month(li.getAttribute('data-to'));
     if (!li.id || from === null || (!current && (to === null || to < from))) return;
     var role = words(li.querySelector('.xp-role'));
-    // The place is the first sentence of the entry's second line; the supervisors follow it.
-    var place = words(li.querySelector('.xp-org')).split(/\.\s/)[0].replace(/\.$/, '');
+    // The place is the entry's data-place, else the first sentence of its second line (the
+    // supervisors follow it).
+    var place = li.getAttribute('data-place') || words(li.querySelector('.xp-org')).split(/\.\s/)[0].replace(/\.$/, '');
     var short = li.getAttribute('data-short') || role;
     var when = current ? 'since ' + monthName(from)
       : from === to ? monthName(from)
       : Math.floor(from / 12) === Math.floor(to / 12) ? MONTHS[from % 12] + ' to ' + monthName(to)
       : monthName(from) + ' to ' + monthName(to);
+    // A current role's label may end in "now" ("UCSF, now"); its name gives the date instead.
+    var spoken = current ? (short.replace(/,?\s*\bnow$/, '') || short) : short;
     li.getAttribute('data-signal').split(/\s+/).forEach(function (key) {
       var row = rowByKey[key];
       if (!row) return;
       var bar = {
         id: li.id, row: row, from: from, to: to, current: current, short: short,
-        name: row.name + (row.sub ? ' (' + row.sub + ')' : '') + ': ' + short + ', ' + when + '. ' +
+        name: row.name + (row.sub ? ' (' + row.sub + ')' : '') + ': ' + spoken + ', ' + when + '. ' +
           [role, place].filter(Boolean).join(', ') + '.'
       };
       row.bars.push(bar);
@@ -256,8 +261,10 @@
     text(grid, 'sg-now-label', Math.max(minX, Math.min(W - nowW, nx - nowW / 2)), TOP - 8, 'now');
 
     // Bars, row by row and left to right. Each is a link to its entry. The pointer finds it on its
-    // bar and on its label, each with a margin smaller than the gaps kept around them, so no link
-    // reaches over another's bar; the focus ring takes in both and lets the pointer through.
+    // bar, a pixel taller but no wider, so bars that meet keep their 3px apart (the drawn bar lets
+    // the pointer through, as its stroke runs past its ends), and on its label, with a margin
+    // smaller than the gaps kept around it, so no link reaches over another's bar. The focus ring
+    // takes in both and lets the pointer through.
     var links = [];
     rows.forEach(function (row) {
       row.bars.forEach(function (b) {
@@ -271,9 +278,9 @@
         }
         l = Math.max(1, l - 3); r = Math.min(W - 1, r + 3);
         el('rect', { class: 'sg-ring', x: l, y: top - 3, width: r - l, height: btm - top + 6, rx: 3 }, link);
-        el('rect', { class: 'sg-hit', x: b.a0 - 1, y: cy - 5, width: b.a1 - b.a0 + 2, height: 10 }, link);
+        el('rect', { class: 'sg-hit', x: b.a0, y: cy - 5, width: b.a1 - b.a0, height: 10 }, link);
         if (b.box) el('rect', { class: 'sg-hit', x: b.box.x0 - 1, y: row.y + b.box.y0, width: b.box.x1 - b.box.x0 + 2, height: b.box.y1 - b.box.y0 }, link);
-        el('rect', { class: 'sg-bar' + (b.current ? ' is-now' : ''), x: b.a0, y: cy - 4, width: b.a1 - b.a0, height: 8, rx: 4 }, link);
+        el('rect', { class: 'sg-bar' + (b.current ? ' is-now' : ''), x: b.a0, y: cy - 4, width: b.a1 - b.a0, height: 8, rx: 4, 'pointer-events': 'none' }, link);
         var cls = 'sg-bar-label' + (b.current ? ' is-now' : '');
         if (b.box) {
           text(link, cls, b.box.x0, row.y + b.box.base, b.short);

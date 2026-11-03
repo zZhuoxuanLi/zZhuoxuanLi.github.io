@@ -83,7 +83,7 @@
     'lip sideways': 'At the lip the cortex turns down into the fold, so the patch’s columns already lie sideways and the recording is split: positive on one side of the fold, negative on the other.',
     wall: 'In the sulcal wall the columns lie sideways, so the recording is split: positive on one side of the fold, negative on the other.',
     'fundus sideways': 'Where the fundus meets the wall the columns still lie sideways, so from this deep the recording is weak and split: positive on one side of the fold, negative on the other.',
-    'fundus tilted': 'In the fundus the cortex curves round the bottom of the fold, so the patch’s columns tilt, and from this deep every contact records it weakly.',
+    'fundus tilted': 'In the fundus the cortex curves around the bottom of the fold, so the patch’s columns tilt, and from this deep every contact records it weakly.',
     fundus: 'At the fundus the patch faces the array again, but from deep in the fold, so every contact records it weakly.'
   };
   var PLAYBACK = {
@@ -1008,13 +1008,16 @@
     if (slider) slider.value = sliderStep(state.s);
     updateText();
     layout();
-    // Chromium restores the controls after load, just before pageshow.
-    window.addEventListener('pageshow', function () { if (applyControls()) changed(); });
     if ('ResizeObserver' in window) {
       var pending = 0;
       var ro = new ResizeObserver(function () {
         if (pending) return;
-        pending = window.requestAnimationFrame(function () { pending = 0; layout(); });
+        pending = window.requestAnimationFrame(function () {
+          pending = 0;
+          // Only a new width changes the drawing: the first report, and the stages' own new height, do not.
+          if (Math.round(views.record.canvas.getBoundingClientRect().width) !== views.record.W ||
+              Math.round(views.stim.canvas.getBoundingClientRect().width) !== views.stim.W) layout();
+        });
       });
       ro.observe(views.record.stage);
       ro.observe(views.stim.stage);
@@ -1035,7 +1038,9 @@
     var onMotion = function () { if (reduceMotion.matches) stopFlow(); };
     if (reduceMotion.addEventListener) reduceMotion.addEventListener('change', onMotion);
     else if (reduceMotion.addListener) reduceMotion.addListener(onMotion);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(requestRender);
+    // Labels drawn before the web fonts arrive are drawn again once they have (by the time the
+    // figure is first approached they usually have, and there is nothing to redraw).
+    if (document.fonts && document.fonts.ready && document.fonts.status !== 'loaded') document.fonts.ready.then(requestRender);
   }
   // The fold, the caches and the canvases are built when the figure comes within about 800 px of
   // the viewport, not at load; a control used before then builds them first.
@@ -1049,4 +1054,13 @@
   } else {
     init();
   }
+  // Chromium restores the controls after load, just before pageshow. A built figure takes them up
+  // at once. One not built yet is built now if they differ from those in the HTML, so that its
+  // words and value text agree with them before it comes near; untouched, it waits as before.
+  window.addEventListener('pageshow', function () {
+    if (inited) { if (applyControls()) changed(); return; }
+    var restored = (slider && slider.value !== slider.defaultValue) ||
+      patternInputs.some(function (input) { return input.checked !== input.defaultChecked; });
+    if (restored) init();
+  });
 })();

@@ -467,6 +467,12 @@
   // Sighted keyboard users see the keys in the hint while the slice has their focus.
   var pointerHint = null;
   canvas.addEventListener('focus', function () {
+    // Focus ends the intro where it is, as probing does: the source rests where the readout shows
+    // it and the value text says the same. Nor can the intro start later, under the keys.
+    stopJourney();
+    started = true;
+    request();
+    syncSlider();
     var byKeys = true;
     try { byKeys = canvas.matches(':focus-visible'); } catch (e) { /* no :focus-visible: keep the keys hint */ }
     if (!hint || !byKeys) return;
@@ -496,7 +502,13 @@
   var pending = 0;
   function relayoutSoon() {
     if (pending) return;
-    pending = window.requestAnimationFrame(function () { pending = 0; if (layout()) render(); });
+    pending = window.requestAnimationFrame(function () {
+      pending = 0;
+      // Only a new size or pixel density changes the slice: the observer's first report does not.
+      var r = canvas.getBoundingClientRect();
+      if (Math.round(r.width) === view.W && Math.round(r.height) === view.H && Math.min(window.devicePixelRatio || 1, 2) === view.dpr) return;
+      if (layout()) render();
+    });
   }
   if ('ResizeObserver' in window) {
     new ResizeObserver(relayoutSoon).observe(root);

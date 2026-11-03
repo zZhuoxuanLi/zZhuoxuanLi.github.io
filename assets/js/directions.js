@@ -270,13 +270,22 @@
     }
     R = Math.max(R_MIN, R);
     var ext = extents(R);
+    fig.classList.remove('is-unstuck');   // each layout decides afresh whether the loop stays beside the list
     if (isSticky()) {
       // Fit the whole figure under the sticky header: title, drawing, key and caption.
+      var R0 = R;
       var others = fig.getBoundingClientRect().height - stage.getBoundingClientRect().height;
       var room = window.innerHeight - (parseFloat(window.getComputedStyle(fig).top) || 0) - others - 16;
       for (var k = 0; k < 3 && ext.top + ext.bottom > room && R > R_MIN; k++) {
         R = Math.max(R_MIN, R - (ext.top + ext.bottom - room) / 2);
         ext = extents(R);
+      }
+      // Larger text grows the title, key and caption, and the ring shrinks to make room until its
+      // labels run into each other. Below the radius where they stay apart, or still too tall, the
+      // loop scrolls with the page instead (is-unstuck in styles.css), as large as its width allows.
+      if (R < (showWhen ? 135 : 105) || ext.top + ext.bottom > room + 16) {
+        fig.classList.add('is-unstuck');
+        R = R0;
       }
     }
     R = Math.round(R * 2) / 2;

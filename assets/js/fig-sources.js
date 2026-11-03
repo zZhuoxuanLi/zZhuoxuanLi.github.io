@@ -60,7 +60,7 @@
     'lip facing': 'At the lip of the sulcus the cortex has only begun to bend, so the source still points almost straight at the array and the contacts nearest it record a strong, focal signal.',
     'lip sideways': 'At the lip of the sulcus the cortex turns down into the fold. The source already points sideways, so the array records a weak, split pattern.',
     'fundus sideways': 'Where the fundus meets the wall the source still points sideways, so from this deep the array records only a faint, split pattern.',
-    'fundus tilted': 'In the fundus the cortex curves round the bottom of the fold, so the source tilts. From this deep the array records only a faint pattern, part way between a split and a bump.'
+    'fundus tilted': 'In the fundus the cortex curves around the bottom of the fold, so the source tilts. From this deep the array records only a faint pattern, partway between a split and a bump.'
   };
   var METHOD_NOTE = {
     mne: 'Minimum-norm estimation picks the pattern with the least total activity that explains the recordings. Shallow sources need less activity to produce the same signal, so deep activity tends to be spread toward the surface.',
@@ -471,7 +471,7 @@
 
     if (out.gain) {
       var gain = peak ? V_REF / peak : 1;
-      out.gain.textContent = gain < 1.5 ? 'Colours at true scale' : 'Colours scaled ×' + (gain < 10 ? gain.toFixed(1) : Math.round(gain)) + ' to show the pattern';
+      out.gain.textContent = gain < 1.5 ? 'Colors at true scale' : 'Colors scaled ×' + (gain < 10 ? gain.toFixed(1) : Math.round(gain)) + ' to show the pattern';
     }
   }
 
@@ -667,7 +667,12 @@
     var pending = 0;
     var ro = new ResizeObserver(function () {
       if (pending) return;
-      pending = window.requestAnimationFrame(function () { pending = 0; layout(); });
+      pending = window.requestAnimationFrame(function () {
+        pending = 0;
+        // Only a new width changes the drawing: the first report, and the canvases' own new height, do not.
+        if (Math.round(stage.getBoundingClientRect().width) === view.W && Math.round(arrayCanvas.getBoundingClientRect().width) === aview.W) return;
+        layout();
+      });
     });
     ro.observe(stage);
     ro.observe(arrayCanvas);
