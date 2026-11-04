@@ -129,7 +129,8 @@
     var width = canvas.getBoundingClientRect().width;
     if (!width) return false;
     var narrow = width < 560;
-    var gutter = narrow ? 58 : 98, title = 22, gap = narrow ? 14 : 16;
+    // The wide gutter fits "tongue body" (about 91px in the 13px mono) right-aligned 10px from the tracks.
+    var gutter = narrow ? 58 : 104, title = 22, gap = narrow ? 14 : 16;
     var rowA = narrow ? 6 : 7, rowB = narrow ? 12 : 14, strip = narrow ? 56 : 60, axis = 26;
     var H = title + ELECTRODES * rowA + gap + title + ROWS.length * rowB + gap + title + strip + axis;
     view = K.fit(canvas, H);
@@ -148,6 +149,27 @@
   function X(seconds) { return L.raster.x + (seconds / DURATION) * L.raster.w; }
   function FX(frame) { return L.raster.x + (frame / FRAMES) * L.raster.w; }
 
+  // Lays out a row of labels { left, w } in order, each as near its preferred left as it can be while
+  // staying `gap` apart and inside lo..hi. Labels that would collide move together as one block,
+  // centred on where they wanted to be (least squares, by pooling adjacent violators).
+  function spread(items, gap, lo, hi) {
+    var pools = [], offset = 0, i = 0;
+    items.forEach(function (item) {
+      item.offset = offset;   // the width of the labels before it, with their gaps
+      offset += item.w + gap;
+      pools.push({ sum: item.left - item.offset, n: 1 });
+      while (pools.length > 1 && pools[pools.length - 2].sum * pools[pools.length - 1].n > pools[pools.length - 1].sum * pools[pools.length - 2].n) {
+        var last = pools.pop();
+        pools[pools.length - 1].sum += last.sum;
+        pools[pools.length - 1].n += last.n;
+      }
+    });
+    pools.forEach(function (pool) {
+      var start = Math.max(lo, Math.min(hi - (offset - gap), pool.sum / pool.n));
+      for (var j = 0; j < pool.n; j++, i++) items[i].left = start + items[i].offset;
+    });
+  }
+
   function draw() {
     if (!view) return;
     var ctx = view.ctx, W = view.W, H = view.H, narrow = view.narrow, mode = MODES[state.mode];
@@ -156,7 +178,7 @@
     ctx.fillRect(0, 0, W, H);
 
     // Track titles, in the instrument's voice.
-    var titleColor = '#8a8a8a';
+    var titleColor = '#969696';
     K.text(ctx, narrow ? 'Neural features, 16 electrodes' : 'Neural features · 16 electrodes over speech motor cortex', 0, L.raster.y - 8, { color: titleColor, size: fs });
     K.text(ctx, narrow ? 'Decoder: phoneme probabilities' : 'Decoder output · phoneme probabilities, one column per 20 ms', 0, L.post.y - 8, { color: titleColor, size: fs });
     K.text(ctx, 'Words · ' + mode.title, 0, L.strip.y - 8, { color: titleColor, size: fs });
@@ -172,7 +194,7 @@
     // Phoneme probabilities as light on black; the blank row is "no new sound".
     K.raster(ctx, data.postRows, L.post.x, L.post.y, L.post.w, L.post.h, 'gray');
     ROWS.forEach(function (ph, r) {
-      K.text(ctx, ph, L.gutter - 10, L.post.y + (r + 0.5) * L.post.row + 4, { color: r === 0 ? '#8a8a8a' : '#ababab', align: 'right', size: fs });
+      K.text(ctx, ph, L.gutter - 10, L.post.y + (r + 0.5) * L.post.row + 4, { color: r === 0 ? '#969696' : '#ababab', align: 'right', size: fs });
     });
 
     // The current moment: a column across the decoder output and a hairline through every track.
@@ -203,26 +225,39 @@
     // Phonemes at the moment they were emitted, then brackets and the words this mode produces.
     var phY = L.strip.y + 12, brY = L.strip.y + 22;
     if (narrow) {
-      // Too little room to place each phoneme at its moment: show each word's phonemes as one group.
-      TARGET.forEach(function (w, wi) {
-        var group = SOUNDS.map(function (s, i) { return s.word === wi ? (i === MISHEARD ? mode.vowel : s.ph) : null; }).filter(Boolean).join(' ');
-        K.text(ctx, group, (X(WORD_SPAN[wi][0]) + X(WORD_SPAN[wi][1])) / 2, phY, { color: '#ededed', align: 'center', size: fs });
+      // Too little room to place each phoneme at its moment: show each word's phonemes as one group,
+      // centred under the word, but at least a space from the next group on the narrowest phones.
+      ctx.font = '400 ' + fs + 'px ' + K.mono;
+      var groups = TARGET.map(function (w, wi) {
+        var text = SOUNDS.map(function (s, i) { return s.word === wi ? (i === MISHEARD ? mode.vowel : s.ph) : null; }).filter(Boolean).join(' ');
+        var gw = ctx.measureText(text).width;
+        return { text: text, w: gw, left: (X(WORD_SPAN[wi][0]) + X(WORD_SPAN[wi][1])) / 2 - gw / 2 };
       });
+      spread(groups, ctx.measureText(' ').width, 0, L.strip.x + L.strip.w);
+      groups.forEach(function (g) { K.text(ctx, g.text, g.left, phY, { color: '#ededed', size: fs }); });
     } else {
       SOUNDS.forEach(function (s, i) {
         K.text(ctx, i === MISHEARD ? mode.vowel : s.ph, FX(s.frame + 1), phY, { color: '#ededed', align: 'center', size: fs });
       });
     }
+    // The words sit centred under their brackets, spread the same way so they never touch on the narrowest phones.
+    var wordFont = { size: narrow ? 16 : 18, weight: 700, sans: true };
+    K.text(ctx, '', 0, 0, wordFont);   // sets the word font, so the words can be measured before drawing
+    var spots = mode.words.map(function (word, i) {
+      var ww = ctx.measureText(word).width;
+      return { w: ww, left: (X(WORD_SPAN[i][0]) + X(WORD_SPAN[i][1])) / 2 - ww / 2 };
+    });
+    spread(spots, ctx.measureText(' ').width, 0, L.strip.x + L.strip.w);
     mode.words.forEach(function (word, i) {
-      var x0 = X(WORD_SPAN[i][0]), x1 = X(WORD_SPAN[i][1]), mid = (x0 + x1) / 2;
+      var x0 = X(WORD_SPAN[i][0]), x1 = X(WORD_SPAN[i][1]), mid = spots[i].left + spots[i].w / 2;
       ctx.fillStyle = 'rgba(237, 237, 237, 0.35)';
       ctx.fillRect(x0, brY, x1 - x0, 1);
       ctx.fillRect(x0, brY - 4, 1, 5);
       ctx.fillRect(x1 - 1, brY - 4, 1, 5);
       var wrong = word !== TARGET[i];
-      var ww = K.text(ctx, word, mid, brY + 24, { size: narrow ? 16 : 18, weight: 700, sans: true, color: wrong ? '#ababab' : '#ededed', align: 'center' });
+      var ww = K.text(ctx, word, mid, brY + 24, { size: wordFont.size, weight: 700, sans: true, color: wrong ? '#ababab' : '#ededed', align: 'center' });
       if (wrong) {
-        ctx.fillStyle = '#8a8a8a';
+        ctx.fillStyle = '#969696';
         for (var dx = -ww / 2; dx < ww / 2; dx += 4) ctx.fillRect(Math.round(mid + dx), brY + 30, 2, 2);
       }
     });
@@ -232,7 +267,7 @@
       var x = X(s);
       ctx.fillStyle = 'rgba(237, 237, 237, 0.4)';
       ctx.fillRect(Math.round(x), L.axis, 1, 5);
-      K.text(ctx, s === 2 ? '2.0 s' : s.toFixed(1), x, L.axis + 19, { color: '#8a8a8a', align: s === 0 ? 'left' : 'center', size: fs });
+      K.text(ctx, s === 2 ? '2.0 s' : s.toFixed(1), x, L.axis + 19, { color: '#969696', align: s === 0 ? 'left' : 'center', size: fs });
     });
     ctx.fillStyle = '#ffd23f';
     ctx.fillRect(Math.round(cx) - 1, L.axis - 1, 3, 8);
@@ -310,11 +345,31 @@
     return ((event.clientX - rect.left - L.raster.x) / L.raster.w) * FRAMES;
   }, function (frame) { cancelGlide(); setFrame(frame); });
 
+  // A browser can bring back the time and language model a visitor chose (Back without the
+  // back/forward cache, a restored session) without firing input or change events.
+  // Applies what the controls show; returns whether anything changed.
+  function applyControls() {
+    var changed = false;
+    modeInputs.forEach(function (input) {
+      if (input.checked && input.value !== state.mode) { state.mode = input.value; changed = true; }
+    });
+    if (slider) {
+      var f = Math.max(0, Math.min(FRAMES - 1, Math.round(Number(slider.value))));
+      if (f !== state.frame) { state.frame = f; changed = true; }
+    }
+    return changed;
+  }
+
   /* ---------- Setup ---------- */
   K.ramp(fig.querySelector('[data-ramp="activity"]'), 'activity');
   K.ramp(fig.querySelector('[data-ramp="gray"]'), 'gray');
+  applyControls();
   modeInputs.forEach(function (input) { input.checked = input.value === state.mode; });
   if (layout()) draw();
   update();
   K.onResize(canvas.parentNode, function () { if (layout()) draw(); });
+  // Chromium restores the controls after load, just before pageshow.
+  window.addEventListener('pageshow', function () {
+    if (applyControls()) { cancelGlide(); update(false); requestRender(); }
+  });
 })();

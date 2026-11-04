@@ -51,8 +51,13 @@
     return { ctx: ctx, W: w, H: h, dpr: dpr };
   }
 
+  // Activity as an opaque colour on black, for a value in units of `scale`: the 1.3 power
+  // keeps the small values of noise near zero dark, so the structure stands out. One function
+  // for raster() and ramp(), so a key always matches its raster.
+  function activityRGB(v, scale) { return M.activityMap(v, Math.pow(Math.min(1, Math.abs(v) / scale), 1.3)); }
+
   // Paints a rows × cols matrix into a rectangle. kind 'activity' uses the warm/cool
-  // activity ramps (values in units of `scale`); kind 'gray' paints values 0..1 as light.
+  // activity map (values in units of `scale`); kind 'gray' paints values 0..1 as light.
   var scratch = document.createElement('canvas');
   function raster(ctx, rows, x, y, w, h, kind, scale) {
     var nr = rows.length, nc = rows[0].length;
@@ -66,9 +71,8 @@
           a = Math.pow(Math.max(0, Math.min(1, v)), 0.6);
           rgb = [237, 237, 237];
         } else {
-          var t = Math.min(1, Math.abs(v) / scale);
-          rgb = M.activityColor(v, 0.3 + 0.7 * t);
-          a = (v < 0 ? 0.55 : 0.92) * Math.pow(t, 0.9);
+          rgb = activityRGB(v, scale);
+          a = 1;
         }
         d[i] = Math.round(rgb[0] * a); d[i + 1] = Math.round(rgb[1] * a); d[i + 2] = Math.round(rgb[2] * a); d[i + 3] = 255;
       }
@@ -80,8 +84,9 @@
     ctx.restore();
   }
 
-  // Paints a colour key into an element with the same ramp and opacity as raster() over black:
+  // Paints a colour key into an element with the same colours as raster() over black:
   // 'activity' runs from the negative peak through zero to the positive peak, 'gray' from 0 to 1.
+  // (styles.css gives .cbar-ramp these same 21 stops, so the key is right before this runs.)
   function ramp(el, kind) {
     if (!el) return;
     var stops = [];
@@ -91,9 +96,8 @@
         a = Math.pow(f, 0.6);
         rgb = [237, 237, 237];
       } else {
-        var v = f * 2 - 1, t = Math.abs(v);
-        rgb = M.activityColor(v, 0.3 + 0.7 * t);
-        a = (v < 0 ? 0.55 : 0.92) * Math.pow(t, 0.9);
+        rgb = activityRGB(f * 2 - 1, 1);
+        a = 1;
       }
       stops.push('rgb(' + rgb.map(function (c) { return Math.round(c * a); }).join(',') + ') ' + (i * 5) + '%');
     }
@@ -104,7 +108,7 @@
   function text(ctx, s, x, y, opts) {
     opts = opts || {};
     ctx.font = (opts.weight || 400) + ' ' + (opts.size || 13) + 'px ' + (opts.sans ? SANS : MONO);
-    ctx.fillStyle = opts.color || '#8a8a8a';
+    ctx.fillStyle = opts.color || '#969696';
     ctx.textAlign = opts.align || 'left';
     ctx.textBaseline = opts.baseline || 'alphabetic';
     ctx.fillText(s, x, y);
@@ -128,17 +132,43 @@
   }
 
   // Pointer scrubbing on a canvas: toValue(event) maps a pointer to a value.
+  // A mouse scrubs from the press. A finger or pen may be starting a page scroll (the
+  // canvases allow vertical panning, and the browser only decides after the press), so it
+  // scrubs once it has moved clearly sideways, and a tap sets the value on release; a
+  // vertical swipe, or one the browser takes over with pointercancel, changes nothing.
+  var SLOP = 8;   // px a touch moves before it counts as a scrub or a scroll
   function scrub(canvas, toValue, onValue, onEnd) {
-    var active = false;
+    var active = false, scrubbing = false, x0 = 0, y0 = 0;
     canvas.addEventListener('pointerdown', function (event) {
       if (event.button !== undefined && event.button > 0) return;
       active = true;
+      scrubbing = event.pointerType !== 'touch' && event.pointerType !== 'pen';
+      x0 = event.clientX;
+      y0 = event.clientY;
       try { canvas.setPointerCapture(event.pointerId); } catch (e) { /* capture is a nicety */ }
+      if (scrubbing) onValue(toValue(event));
+    });
+    canvas.addEventListener('pointermove', function (event) {
+      if (!active) return;
+      if (!scrubbing) {
+        var dx = Math.abs(event.clientX - x0), dy = Math.abs(event.clientY - y0);
+        if (dx <= SLOP && dy <= SLOP) return;
+        if (dx <= dy) { active = false; return; }   // a vertical swipe: leave it to the page
+        scrubbing = true;
+      }
       onValue(toValue(event));
     });
-    canvas.addEventListener('pointermove', function (event) { if (active) onValue(toValue(event)); });
     ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (name) {
-      canvas.addEventListener(name, function () { if (active) { active = false; if (onEnd) onEnd(); } });
+      canvas.addEventListener(name, function (event) {
+        if (!active) return;
+        active = false;
+        if (!scrubbing) {
+          if (name !== 'pointerup') return;   // taken over by the page before it moved: nothing applied
+          onValue(toValue(event));            // a tap
+        }
+        scrubbing = false;
+        if (onEnd) onEnd();
+      });
     });
   }
 
@@ -152,10 +182,17 @@
 
   function onResize(el, fn) {
     if ('ResizeObserver' in window) {
-      var pending = 0;
+      var pending = 0, lastW = Math.round(el.getBoundingClientRect().width);
       new ResizeObserver(function () {
         if (pending) return;
-        pending = window.requestAnimationFrame(function () { pending = 0; fn(); });
+        pending = window.requestAnimationFrame(function () {
+          pending = 0;
+          // Only a new width changes a figure: the first report, and its own new height, do not.
+          var w = Math.round(el.getBoundingClientRect().width);
+          if (w === lastW) return;
+          lastW = w;
+          fn();
+        });
       }).observe(el);
     } else {
       window.addEventListener('resize', fn);

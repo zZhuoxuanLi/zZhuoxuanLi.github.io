@@ -5,8 +5,9 @@
    is shaded by how strongly a source there reaches the electrodes, so the
    cortex the strip barely sees is drawn dim on purpose.
    One authored moment on load: the slice is acquired, then the source moves
-   from a crown into the deepest fold and rests there. The pointer probes
-   the cortex afterwards. Schematic and synthetic, not patient data. */
+   from a crown into the deepest fold and rests there. The pointer (or a tap,
+   or the arrow keys: the slice is also a slider) probes the cortex afterwards.
+   Schematic and synthetic, not patient data. */
 (function () {
   'use strict';
 
@@ -20,6 +21,7 @@
   var outDepth = document.querySelector('[data-hero-out="depth"]');
   var outSignal = document.querySelector('[data-hero-out="signal"]');
   var hint = document.querySelector('[data-hero-hint]');
+  var live = document.querySelector('[data-hero-live]');
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   var coarse = window.matchMedia('(pointer: coarse)');
 
@@ -60,7 +62,7 @@
     return REACH[Math.round(Math.abs(Math.atan2(p.nx, p.ny)) * 180 / Math.PI)] / (d * d) / V_REF;
   }
 
-  var view = { W: 0, H: 0, k: 10, x0: 0, top: 0, dpr: 1, narrow: false };
+  var view = { W: 0, H: 0, k: 10, x0: 0, top: 0, dpr: 1, narrow: false, sLo: 0, sHi: 0 };
   var base = document.createElement('canvas');
   var state = { s: 0, probe: null, pointer: null, journey: 0, settled: false };
   var REST = M.nearest(fold, DEEP_X - 1.75, -7, 0, fold.total).s;      // left wall of the deep fold
@@ -93,6 +95,14 @@
   }
   var noise = makeNoise();
 
+  // Arc length where the path, read from its right end, first reaches x on a crown: the mirror of
+  // M.sAtCrownX, so the folds beyond the right edge count with their full length, not as flat cortex.
+  function sAtCrownXFromRight(x) {
+    var path = fold.path;
+    for (var i = path.length - 1; i >= 0; i--) if (path[i].part === 'crown' && path[i].x <= x) return path[i].s;
+    return 0;
+  }
+
   // The stylesheet sets the slice's size; below the label band the full depth range fits
   // its height, and the width shows as much cortex as that true scale allows.
   function layout() {
@@ -105,12 +115,17 @@
     view.k = (h - BAND) / (Y_TOP - Y_BOT);
     view.narrow = w < 640;
     view.x0 = (view.narrow ? DEEP_X - 2 : 0) - w / view.k / 2;
+    // The stretch of cortex the source can take (probing, keys): from 1 mm inside the left edge
+    // to 1 mm inside the right one, each found on a crown from its own side.
+    view.sLo = M.sAtCrownX(fold, view.x0 + 1);
+    view.sHi = sAtCrownXFromRight(view.x0 + w / view.k - 1);
     view.dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = Math.round(w * view.dpr);
     canvas.height = Math.round(h * view.dpr);
     base.width = canvas.width;
     base.height = canvas.height;
     drawBase();
+    syncSlider();
     return true;
   }
 
@@ -288,8 +303,9 @@
       ctx.fillStyle = '#000';
       ctx.fill();
       if (t > 0.02) {
-        var col = M.activityColor(v, 0.35 + 0.65 * t);
-        ctx.fillStyle = 'rgba(' + col[0] + ',' + col[1] + ',' + col[2] + ',' + (0.2 + 0.8 * t).toFixed(3) + ')';
+        // Opaque, as in the figures. The floor keeps a faint contact readable as dark red or navy;
+        // the cap keeps the strongest orange or sky blue, apart from the source's pale yellow core.
+        ctx.fillStyle = 'rgb(' + M.activityMap(v, 0.12 + 0.60 * t).join(',') + ')';
         ctx.fill();
       }
       ctx.lineWidth = 1;
@@ -345,7 +361,7 @@
       state.s = START + (REST - START) * M.easeInOut(t);
       render();
       if (t < 1 && state.journey) state.journey = window.requestAnimationFrame(step);
-      else { state.journey = 0; request(); }               // settle: the crosshair locks onto the source
+      else { state.journey = 0; request(); syncSlider(); }   // settle: the crosshair locks onto the source
     }
     state.journey = window.requestAnimationFrame(step);
     request();
@@ -361,22 +377,114 @@
     var px = event.clientX - rect.left, py = event.clientY - rect.top;
     return { px: px, py: py, x: px / view.k + view.x0, y: Y_TOP - (py - view.top) / view.k };
   }
+  // Returns whether the pointer was on the cortex, so the source moved there.
   function probe(event) {
     var m = toModel(event);
     state.pointer = { x: m.px, y: m.py };
-    var lo = M.sAtCrownX(fold, view.x0 + 1), hi = fold.total - (fold.path[fold.path.length - 1].x - (view.x0 + view.W / view.k - 1));
-    var hit = M.nearest(fold, m.x, m.y, lo, hi);
-    if (hit.dist < 3) { stopJourney(); state.s = hit.s; }
+    var hit = M.nearest(fold, m.x, m.y, view.sLo, view.sHi);
+    var onCortex = hit.dist < 3;
+    if (onCortex) { stopJourney(); state.s = hit.s; }
     request();
+    return onCortex;
   }
+  // A mouse or pen probes as it moves. A finger probes only on a tap (down and up close together,
+  // not cancelled): the canvas lets vertical swipes scroll the page (touch-action: pan-y), and a
+  // scroll that starts on the slice must not move the source or cut the intro short.
+  var tap = null, TAP_SLOP = 10;   // px a finger may drift during a tap
   canvas.addEventListener('pointermove', function (event) {
-    if (event.pointerType === 'touch') return;
-    probe(event);
+    if (event.pointerType !== 'touch') { probe(event); return; }
+    if (tap && tap.id === event.pointerId && Math.hypot(event.clientX - tap.x, event.clientY - tap.y) > TAP_SLOP) tap = null;
   });
-  canvas.addEventListener('pointerdown', function (event) { probe(event); });
-  canvas.addEventListener('pointerleave', function () { state.pointer = null; request(); });
+  canvas.addEventListener('pointerdown', function (event) {
+    if (event.pointerType !== 'touch') { probe(event); return; }
+    tap = tap ? null : { id: event.pointerId, x: event.clientX, y: event.clientY };   // a second finger is no tap
+  });
+  canvas.addEventListener('pointerup', function (event) {
+    if (!tap || tap.id !== event.pointerId) return;
+    tap = null;
+    if (probe(event)) { syncSlider(); announceSoon(); }
+  });
+  canvas.addEventListener('pointercancel', function () { tap = null; });
+  canvas.addEventListener('pointerleave', function () { tap = null; state.pointer = null; request(); syncSlider(); });
+  // A click or tap does not focus the slice (it takes focus from the keyboard only), so a mouse
+  // user's arrow keys keep scrolling the page.
+  canvas.addEventListener('mousedown', function (event) { event.preventDefault(); });
 
+  // Each hint (this one, the keys hint below and the pointer hint in index.html) stays within 27
+  // characters: on wide screens it shares the status strip's one line with the readout.
   if (hint && coarse.matches) hint.textContent = 'Tap the cortex to probe it.';
+
+  /* ---------- Probing with the keyboard ----------
+     The slice is also a slider (role="slider") for the source's place along the cortex, the one
+     value the probe sets: the arrow keys step 1 mm of cortex, Page Up and Page Down 10 mm, and
+     Home and End go to the ends of the cortex in view. Its value text is the location and depth;
+     a polite live region adds the signal once the keys pause, not on every step or frame. */
+  var STEP = 1, PAGE = 10;   // mm of cortex
+  // The picture's description (the canvas's name without the script) and the keys describe the slider;
+  // its name differs from Fig. 1's slider, which sets the same kind of value.
+  var described = ['hero-slice-desc', 'hero-slice-keys'].filter(function (id) { return document.getElementById(id); });
+  canvas.setAttribute('role', 'slider');
+  canvas.setAttribute('aria-label', 'Slice probe: source position along the cortex');
+  canvas.removeAttribute('aria-labelledby');
+  if (described.length) canvas.setAttribute('aria-describedby', described.join(' '));
+  canvas.tabIndex = 0;
+
+  // The readout in words: where the source is, then what the electrodes record from it.
+  function describe() {
+    var src = M.at(fold, state.s);
+    var where = (REGION_NAME[src.part] || '') + ', ' + (ELEC_Y - src.y).toFixed(1) + ' mm below the electrodes';
+    return { where: where, full: where + '. Signal at the electrodes: ' + format(100 * signalAt(src).peak / V_REF) + ' of a crown source.' };
+  }
+  function syncSlider() {
+    var span = Math.max(0, view.sHi - view.sLo);
+    canvas.setAttribute('aria-valuemin', '0');
+    canvas.setAttribute('aria-valuemax', String(Math.round(span)));
+    canvas.setAttribute('aria-valuenow', String(Math.round(Math.min(span, Math.max(0, state.s - view.sLo)))));
+    canvas.setAttribute('aria-valuetext', describe().where);
+  }
+  var liveTimer = 0;
+  function announceSoon() {
+    clearTimeout(liveTimer);
+    liveTimer = setTimeout(function () { if (live) live.textContent = describe().full; }, 450);
+  }
+  canvas.addEventListener('keydown', function (event) {
+    if (!view.W || event.altKey || event.ctrlKey || event.metaKey) return;
+    var s = state.s;
+    switch (event.key) {
+      case 'ArrowRight': case 'ArrowUp': s += STEP; break;
+      case 'ArrowLeft': case 'ArrowDown': s -= STEP; break;
+      case 'PageUp': s += PAGE; break;
+      case 'PageDown': s -= PAGE; break;
+      case 'Home': s = view.sLo; break;
+      case 'End': s = view.sHi; break;
+      default: return;
+    }
+    event.preventDefault();
+    stopJourney();
+    state.s = Math.min(view.sHi, Math.max(view.sLo, s));
+    request();
+    syncSlider();
+    announceSoon();
+  });
+  // Sighted keyboard users see the keys in the hint while the slice has their focus.
+  var pointerHint = null;
+  canvas.addEventListener('focus', function () {
+    // Focus ends the intro where it is, as probing does: the source rests where the readout shows
+    // it and the value text says the same. Nor can the intro start later, under the keys.
+    stopJourney();
+    started = true;
+    request();
+    syncSlider();
+    var byKeys = true;
+    try { byKeys = canvas.matches(':focus-visible'); } catch (e) { /* no :focus-visible: keep the keys hint */ }
+    if (!hint || !byKeys) return;
+    pointerHint = hint.textContent;
+    hint.textContent = 'Arrow keys move the source.';
+  });
+  canvas.addEventListener('blur', function () {
+    if (hint && pointerHint !== null) hint.textContent = pointerHint;
+    pointerHint = null;
+  });
 
   /* ---------- Setup ---------- */
   if (layout()) render();
@@ -393,14 +501,34 @@
   } else {
     start();
   }
+  var pending = 0;
+  function relayoutSoon() {
+    if (pending) return;
+    pending = window.requestAnimationFrame(function () {
+      pending = 0;
+      // Only a new size or pixel density changes the slice: the observer's first report does not.
+      var r = canvas.getBoundingClientRect();
+      if (Math.round(r.width) === view.W && Math.round(r.height) === view.H && Math.min(window.devicePixelRatio || 1, 2) === view.dpr) return;
+      if (layout()) render();
+    });
+  }
   if ('ResizeObserver' in window) {
-    var pending = 0;
-    new ResizeObserver(function () {
-      if (pending) return;
-      pending = window.requestAnimationFrame(function () { pending = 0; if (layout()) render(); });
-    }).observe(root);
+    new ResizeObserver(relayoutSoon).observe(root);
   } else {
     window.addEventListener('resize', function () { if (layout()) render(); });
   }
+  // A window moved to a screen of another pixel density keeps its CSS size, so the observer stays
+  // quiet; redraw at the new density. Each query matches one density, so it is renewed each time.
+  (function watchDensity() {
+    var query = window.matchMedia('(resolution: ' + (window.devicePixelRatio || 1) + 'dppx)');
+    function changed() {
+      if (query.removeEventListener) query.removeEventListener('change', changed);
+      else if (query.removeListener) query.removeListener(changed);
+      relayoutSoon();
+      watchDensity();
+    }
+    if (query.addEventListener) query.addEventListener('change', changed);
+    else if (query.addListener) query.addListener(changed);
+  })();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { if (layout()) render(); });
 })();

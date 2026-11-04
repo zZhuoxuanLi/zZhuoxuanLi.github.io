@@ -16,7 +16,7 @@
   --v-track: #5c5c5c;
   --v-ink: #ededed;
   --v-ink-2: #ababab;
-  --v-ink-3: #8a8a8a;
+  --v-ink-3: #969696;     /* APCA Lc -45.6 on black for the 14px mono labels (#8a8a8a gave -39.6) */
   --v-yellow: #ffd23f;
   --v-red: #ff4d3d;
 
@@ -27,11 +27,16 @@
   --rule-strong: #4c4c4c;
   --ink: #ededed;      /* white matter */
   --ink-2: #ababab;    /* gray matter */
-  --ink-3: #8a8a8a;    /* CSF */
+  --ink-3: #969696;    /* CSF; APCA Lc -45.1 on the ground (#8a8a8a gave -39.0) */
   --contour: #ffd23f;  /* white-matter surface: links, marks */
   --pial: #ff4d3d;     /* pial surface: focus, caret */
   --selection: rgba(255, 210, 63, 0.32);
   --scroll-thumb: #4c4c4c;
+  /* Directions: the one hue added for the research roadmap (violet, OKLCH 0.66 0.17 290).
+     It marks what is ahead (loop arcs, mini-loops, question bullets, the underline of links
+     into the directions), never body text; yellow keeps marking what exists and is current. */
+  --dir: #937cf1;
+  --track: #3a3a3a;    /* the loop's base ring and chart hairlines, between rule and rule-strong */
 
   /* Type */
   --font: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
@@ -48,7 +53,7 @@
   --s1: 0.25rem; --s2: 0.5rem; --s3: 0.75rem; --s4: 1rem; --s5: 1.5rem;
   --s6: 2rem; --s7: 3rem; --s8: 4rem;
   --gutter: clamp(16px, 4.5vw, 64px);
-  --measure: 66ch;
+  --measure: 54ch;     /* about 75 characters a line: this face's "0", which sets 1ch, is wider than its average letter */
   --wrap: 80rem;
   --radius: 3px;
   --header-h: 60px;
@@ -70,9 +75,11 @@
     --ink-2: #3c3f3f;
     --ink-3: #575b5b;
     --contour: #7a5b00;
-    --pial: #c4291c;
-    --selection: rgba(196, 41, 28, 0.18);
+    --pial: #b8235f;     /* crimson, not orange-red: with protanopia #c4291c merged with the ochre underline */
+    --selection: rgba(184, 35, 95, 0.18);
     --scroll-thumb: #a3a8a8;
+    --dir: #6d48d1;
+    --track: #bfc3c3;
     color-scheme: light;
   }
 }
@@ -85,9 +92,11 @@
   --ink-2: #3c3f3f;
   --ink-3: #575b5b;
   --contour: #7a5b00;
-  --pial: #c4291c;
-  --selection: rgba(196, 41, 28, 0.18);
+  --pial: #b8235f;
+  --selection: rgba(184, 35, 95, 0.18);
   --scroll-thumb: #a3a8a8;
+  --dir: #6d48d1;
+  --track: #bfc3c3;
   color-scheme: light;
 }
 
@@ -100,7 +109,9 @@ html {
   scroll-padding-top: calc(var(--header-h) + env(safe-area-inset-top, 0px));   /* links and focus land below the sticky bar */
   -webkit-tap-highlight-color: rgba(255, 210, 63, 0.2);
 }
-@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+/* In-page links scroll smoothly once the page has loaded (main.js then adds .is-ready), so a deep
+   link from elsewhere lands at once instead of gliding through the whole page. */
+@media (prefers-reduced-motion: no-preference) { html.is-ready { scroll-behavior: smooth; } }
 
 body {
   margin: 0;
@@ -115,7 +126,14 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-h1, h2, h3, h4 { margin: 0; font-weight: 700; line-height: 1.12; letter-spacing: -0.012em; text-wrap: balance; }
+h1, h2, h3, h4, h5 { margin: 0; font-weight: 700; line-height: 1.12; letter-spacing: -0.012em; text-wrap: balance; }
+/* With larger text, a long word in a large heading breaks rather than widening its column past the screen. */
+.hero h1, .section-head h2, .about-main h2, .contact-intro h2, .pub-title { overflow-wrap: anywhere; }
+/* Phones: with larger text the big headings also stop growing at a share of the screen width, so a
+   word like "neurophysiology" keeps whole instead of breaking. At the default size the cap never binds. */
+@media (max-width: 639.98px) {
+  :root { --t-display: min(clamp(3rem, 1.7rem + 4vw, 5.25rem), 15vw); --t-h2: min(clamp(2rem, 1.45rem + 1.7vw, 3rem), 12vw); }
+}
 p, ul, ol, dl, dd, figure { margin: 0; }
 ul, ol { padding: 0; list-style: none; }
 p, li, dd { text-wrap: pretty; }
@@ -133,6 +151,7 @@ a:hover { text-decoration-thickness: 2px; }
 .visually-hidden { position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .skip-link { position: absolute; left: 16px; top: -200px; z-index: 100; padding: var(--s3) var(--s4); background: var(--v-ink); color: #000; font-weight: 700; text-decoration: none; border-radius: var(--radius); }
 .skip-link:focus { top: 12px; }
+.skip-link:focus-visible { outline-color: var(--v-red); }   /* it shows over the dark bar in both themes, so its ring takes the bar's red (see .bar :focus-visible) */
 
 .wrap {
   width: 100%;
@@ -177,8 +196,11 @@ abbr[title] { text-decoration: none; border-bottom: 1px dotted currentColor; cur
   color: var(--v-ink);
 }
 .bar-inner { display: flex; align-items: center; gap: var(--s4); min-height: var(--header-h); }
-.wordmark { display: inline-flex; align-items: center; gap: var(--s3); margin-right: auto; font-weight: 700; font-size: 1.0625rem; letter-spacing: -0.005em; text-decoration: none; color: var(--v-ink); white-space: nowrap; }
+@media (max-width: 359.98px) { .bar-inner { gap: var(--s2); } }   /* the smallest phones: the whole name still fits */
+.wordmark { display: inline-flex; align-items: center; gap: var(--s3); min-width: 0; margin-right: auto; font-weight: 700; font-size: 1.0625rem; letter-spacing: -0.005em; text-decoration: none; color: var(--v-ink); white-space: nowrap; }
 .wordmark svg { flex: none; }
+/* With larger text only the name gives way, cut short at its end; the buttons keep their 44px. */
+.wordmark span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .nav-list { display: flex; align-items: center; gap: var(--s1); }
 .nav-list a {
   position: relative;
@@ -195,9 +217,11 @@ abbr[title] { text-decoration: none; border-bottom: 1px dotted currentColor; cur
 .nav-list a:hover, .nav-list a[aria-current="true"] { color: var(--v-ink); }
 .nav-list a::after { content: ""; position: absolute; left: var(--s3); right: var(--s3); bottom: 8px; height: 2px; background: var(--v-yellow); transform: scaleX(0); transform-origin: left; transition: transform 220ms var(--ease-out); }
 .nav-list a[aria-current="true"]::after { transform: scaleX(1); }
+@media (forced-colors: active) { .nav-list a::after { background: CanvasText; } }   /* the bar is a background, which forced colours drop */
 .nav-list .nav-cv a { color: var(--v-ink); }
 .icon-btn {
   display: inline-grid;
+  flex: none;
   place-items: center;
   width: 44px;
   height: 44px;
@@ -217,8 +241,12 @@ abbr[title] { text-decoration: none; border-bottom: 1px dotted currentColor; cur
 .nav-toggle { display: none; gap: var(--s2); width: auto; padding: 0 var(--s3); color: var(--v-ink); font: 600 var(--t-small) var(--font); }
 .bar :focus-visible, .hero :focus-visible, .stage :focus-visible { outline-color: var(--v-red); }
 
-@media (max-width: 860px) {
+/* The menu takes over below 860px at the default text size. The width is in em so that it follows
+   the reader's text size: with larger text the links need more room, so the menu takes over sooner. */
+@media (max-width: 53.75em) {
   .nav-toggle { display: inline-flex; }
+  /* The open list scrolls within the screen under the bar, so a short screen (a phone held
+     sideways, or a page zoomed to 400%) still reaches its last link. */
   .nav-list {
     position: absolute;
     top: 100%;
@@ -228,14 +256,29 @@ abbr[title] { text-decoration: none; border-bottom: 1px dotted currentColor; cur
     flex-direction: column;
     align-items: stretch;
     gap: 0;
+    max-height: calc(100vh - var(--header-h) - env(safe-area-inset-top, 0px));
+    max-height: calc(100dvh - var(--header-h) - env(safe-area-inset-top, 0px));
+    overflow-y: auto;
+    scroll-padding-block: var(--s2);   /* a link that focus scrolls in keeps its whole ring in view */
     padding: var(--s2) max(var(--gutter), env(safe-area-inset-right, 0px)) var(--s4) max(var(--gutter), env(safe-area-inset-left, 0px));
     background: var(--chrome);
     border-bottom: 1px solid var(--chrome-rule);
   }
   .site-nav[data-open] .nav-list { display: flex; }
   .nav-list a { min-height: 52px; padding: 0; font-size: 1.125rem; border-bottom: 1px solid var(--chrome-rule); }
-  .nav-list li:last-child a { border-bottom: 0; }
+  /* No rule under the last link shown: the CV item stays hidden until the PDF exists. */
+  .nav-list li:last-child a, .nav-list li:has(+ li[hidden]:last-child) a { border-bottom: 0; }
   .nav-list a::after { left: 0; right: auto; width: 1.5rem; bottom: 10px; }
+}
+/* Without scripts (the head script marks <html> with .js) the buttons that need them are hidden,
+   and on narrow screens the menu's links show as an open list under the name, in the page. */
+html:not(.js) .theme-toggle, html:not(.js) .nav-toggle, html:not(.js) .copy-btn { display: none; }
+@media (max-width: 53.75em) {
+  html:not(.js) .bar { position: static; }   /* the open list is too tall to stay on screen */
+  html:not(.js) .bar-inner { flex-wrap: wrap; row-gap: 0; }
+  html:not(.js) .wordmark { min-height: var(--header-h); }
+  html:not(.js) .site-nav { flex-basis: 100%; }
+  html:not(.js) .nav-list { position: static; display: flex; max-height: none; overflow-y: visible; padding-inline: 0; border-bottom: 0; }
 }
 
 /* ---------- Hero: the viewer ---------- */
@@ -249,9 +292,14 @@ abbr[title] { text-decoration: none; border-bottom: 1px dotted currentColor; cur
 .hero-lede { max-width: 36em; font-size: var(--t-lede); line-height: 1.5; color: var(--v-ink); }
 .hero-status { font-size: var(--t-small); color: var(--v-ink-2); }
 .hero-actions { display: flex; flex-wrap: wrap; gap: var(--s3); }
+/* Phones: the degree line and the CV button give way (About and Contact have both), so the slice
+   comes onto the first screen. The two buttons left share a row where both labels fit, and each
+   takes a row of its own where they do not. */
+@media (max-width: 640px) { .hero-status { display: none; } }
 @media (max-width: 520px) {
-  .hero-actions { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
-  .hero-actions .btn-primary { grid-column: 1 / -1; }
+  .hero-actions { display: flex; flex-wrap: wrap; width: 100%; }
+  .hero-actions .btn { flex: 1 1 auto; }
+  .hero-actions [data-cv-link] { display: none; }
 }
 .hero .btn { color: var(--v-ink); border-color: var(--v-rule-strong); }
 .hero .btn:hover { border-color: var(--v-yellow); }
@@ -270,17 +318,18 @@ abbr[title] { text-decoration: none; border-bottom: 1px dotted currentColor; cur
    (below a 28px label band), so nothing shifts when the slice is drawn. */
 .viewer { position: relative; flex: none; height: clamp(180px, 28vh, 300px); height: clamp(180px, 28svh, 300px); overflow: hidden; background: var(--viewer); border-top: 1px solid var(--chrome-rule); }
 .viewer-canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; touch-action: pan-y; -webkit-tap-highlight-color: transparent; }
+.viewer-canvas:focus-visible { outline-offset: -3px; }   /* the slice is a slider for the keys; the viewer clips a ring outside it */
 .viewer-canvas.is-acquiring { animation: acquire 1100ms var(--ease-out) both; }
 @keyframes acquire { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
 /* The truth label sits in a black band the script keeps above the strip, so it is on screen
    whenever any of the slice is. */
 .viewer-label { position: absolute; top: 5px; right: max(var(--gutter), env(safe-area-inset-right, 0px)); font: 400 var(--t-label)/1.45 var(--mono); color: var(--v-ink); white-space: nowrap; pointer-events: none; }
 .viewer-label strong { font-weight: 700; }
-@media (max-width: 640px) {
-  .viewer-label { font-size: 0.8125rem; }
-  .viewer-plane { display: none; }      /* phones keep only the truth label */
-}
-@media (max-width: 329.98px) { .viewer-extra { display: none; } }   /* the smallest phones: "Synthetic schematic" */
+@media (max-width: 640px) { .viewer-label { font-size: 0.8125rem; } }
+/* Phones keep only the truth label, and the smallest phones its first words ("Synthetic schematic").
+   The widths are in em, so that with larger text the label shortens instead of running off the left edge. */
+@media (max-width: 40em) { .viewer-plane { display: none; } }
+@media (max-width: 20.624em) { .viewer-extra { display: none; } }
 
 /* Desktop: the slice fills the rest of the first screen, so its label and readout stay in view. */
 @media (min-width: 1000px) {
@@ -296,6 +345,39 @@ abbr[title] { text-decoration: none; border-bottom: 1px dotted currentColor; cur
   .brief { gap: var(--s5); }
   .brief ul { gap: var(--s3); }
 }
+/* Short laptop screens (1366x768, 1280x720, or 1366x657 inside a browser): a tighter index of work
+   and a lower minimum for the slice keep the readout on the first screen. */
+@media (min-width: 1000px) and (max-height: 780px) {
+  .hero-grid { padding-block: 1rem; }
+  .brief { gap: var(--s4); padding-top: 0; }
+  .brief ul { gap: var(--s2); margin-top: var(--s2); }
+  .brief a { line-height: 1.25; }
+  .brief .brief-meta { line-height: 1.35; }
+  .viewer { min-height: 150px; }
+}
+/* Up to 800px tall the slice may also take that lower minimum. A 1280x800 window beside a classic
+   scrollbar has a narrower index of work, and the slice's usual minimum pushed the readout below the
+   first screen there. Where the slice is above its minimum this changes nothing. */
+@media (min-width: 1000px) and (max-height: 800px) { .viewer { min-height: 150px; } }
+/* Tablets held sideways and small laptop windows (1000-1279px wide): the index of work gets a wider
+   column, so its titles wrap less and it stays no taller than the introduction. Up to 860px tall it
+   also takes the short screens' tighter spacing and lower minimum for the slice, so the readout
+   stays on the first screen. */
+@media (min-width: 1000px) and (max-width: 1279.98px) {
+  .hero-grid { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); column-gap: clamp(2rem, 4vw, 3rem); }
+}
+@media (min-width: 1000px) and (max-width: 1279.98px) and (max-height: 860px) {
+  .hero-grid { padding-block: 1rem; }
+  .brief { gap: var(--s4); padding-top: 0; }
+  .brief ul { gap: var(--s2); margin-top: var(--s2); }
+  .brief a { line-height: 1.25; }
+  .brief .brief-meta { line-height: 1.35; }
+  .viewer { min-height: 150px; }
+}
+/* Up to 760px tall (a 1100x700 laptop window, or 1133x704) the lede also takes its smallest size,
+   the floor of --t-lede. At about 1070-1110px that makes it a line shorter, where the slice is
+   already at its minimum, and brings the readout onto the first screen at 1100x700. */
+@media (min-width: 1000px) and (max-width: 1279.98px) and (max-height: 760px) { .hero-lede { font-size: 1.25rem; } }
 /* Narrower screens: introduction, then the slice and its readout, then the index of work. */
 @media (max-width: 999.98px) {
   .hero-grid { display: contents; }
@@ -307,6 +389,7 @@ abbr[title] { text-decoration: none; border-bottom: 1px dotted currentColor; cur
 }
 @media (min-width: 640px) and (max-width: 999.98px) { .brief { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--s7); } }
 .viewer-status {
+  container-type: inline-size;   /* the strip's line rules below also measure its own width */
   background: var(--chrome);
   border-top: 1px solid var(--chrome-rule);
   border-bottom: 1px solid var(--chrome-rule);
@@ -316,6 +399,31 @@ abbr[title] { text-decoration: none; border-bottom: 1px dotted currentColor; cur
 .status-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s2) var(--s6); min-height: 48px; padding-block: var(--s3); }
 .readout { display: flex; flex-wrap: wrap; gap: var(--s1) var(--s6); }
 .readout div { display: flex; gap: var(--s2); }
+/* Desktop: the readout's values change length under the pointer ("Lip of the sulcus" against
+   "Fundus"), and the strip must not gain or lose a line with them: the slice shares the first
+   screen with it, so a new line would resize the slice under the pointer. So the lines are set by
+   the width alone. From 1410px (even beside a classic scrollbar) the longest hint and the longest
+   readout fit on one line with room to spare, so they share it, the hint whole at the left. That
+   holds for hints of up to 27 characters, as all three are (in index.html and hero-viewer.js).
+   Below 1410px the hint keeps a line of its own. With the reader's own wider text spacing the
+   readout goes to the line below instead, and nothing is cut. These widths, here and below, are in
+   em so that they follow the reader's text size, as the strip's own text does, and the hint's and
+   the signal's line rules each have a container twin on the strip's own width in rem: rem also
+   follows a text size set on the page itself, as a reader's style sheet can set it, where the
+   window's em does not. */
+@media (min-width: 1000px) and (max-width: 88.124em) { .status-hint { flex-basis: 100%; } }
+@media (min-width: 1000px) { @container (width < 87rem) { .status-hint { flex-basis: 100%; } } }
+/* On one line the hint and readout sit at either end. The gap between them is a minimum, wider than
+   the readout's own, so the hint never reads as one of its items. */
+@media (min-width: 1000px) and (min-width: 88.125em) { .status-inner { column-gap: var(--s7); } }
+/* Up to 1080px (even beside a classic scrollbar) even a line of its own is too short for the
+   longest readout, so the signal always keeps a line of its own there. That includes widths below
+   1000px, where the index of work follows the strip and would otherwise move under the pointer.
+   (Phones, to 640px, give each item a row anyway.) */
+@media (max-width: 67.499em) { .readout div:last-child { flex-basis: 100%; } }
+@container (width < 66rem) { .readout div:last-child { flex-basis: 100%; } }
+/* On short screens, where the hint has a line of its own, the readout takes the first line. */
+@media (min-width: 1000px) and (max-width: 88.124em) and (max-height: 780px) { .status-hint { order: 1; } }
 @media (max-width: 640px) {
   .status-inner { display: grid; justify-content: stretch; gap: var(--s2); }
   .readout { display: grid; gap: var(--s1); }
@@ -327,6 +435,31 @@ abbr[title] { text-decoration: none; border-bottom: 1px dotted currentColor; cur
 }
 .readout dt { color: var(--v-ink-3); }
 .readout dd { color: var(--v-ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* Phones: with larger text a value wraps rather than running off the screen. Beside its label the
+   label gives way first, so at the default size the value keeps its one line, flush right; from
+   380px down the value sits under its label, aligned with it. */
+@media (max-width: 640px) {
+  .readout dt { flex: 1 1 0; }
+  .readout dd { white-space: normal; text-align: right; }
+}
+@media (max-width: 380px) { .readout dd { text-align: left; } }
+/* Below 1000px a label beside its value gives way to it, and must not wrap and unwrap as the value
+   changes length under a tap ("Fundus" against "Lip of the sulcus", "19%" against "0.53%"). So the
+   value is laid out at the width of its longest form, letter-spacing included, and narrower only
+   where its row is too narrow for that, as with very large text. The location and depth need that
+   only on phones: on wider screens they share a line, which the room would only widen, while the
+   signal has a line to itself. The location also keeps room for a reader's own wider letter and
+   word spacing (up to 0.12em a letter and 0.16em a word, 2.5em over "Lip of the sulcus"), which ch
+   leaves out: without it that value alone wraps under such spacing, and the strip with it. */
+@media (max-width: 640px) {
+  .readout [data-hero-out="region"] { flex: 0 1 calc(18ch + 2.5em); }
+  .readout [data-hero-out="depth"] { flex: 0 1 8ch; }
+}
+@media (max-width: 999.98px) { .readout [data-hero-out="signal"] { flex: 0 1 24ch; } }
+/* Below 37.5em each item of the readout takes a line of its own: with larger text the location and
+   depth no longer always fit on one. At the default size that is a phone's width, where each item
+   has a row anyway. */
+@media (max-width: 37.499em) { .readout div { flex-basis: 100%; } }
 
 /* ---------- Sections ---------- */
 .section { padding-block: clamp(3.5rem, 2rem + 4.5vw, 6.5rem); }
@@ -339,9 +472,9 @@ abbr[title] { text-decoration: none; border-bottom: 1px dotted currentColor; cur
 .project { display: grid; gap: var(--s6); scroll-margin-top: var(--s4); }
 .project-block { display: grid; gap: var(--s6); }
 .project + .project { margin-top: clamp(3rem, 2rem + 2.5vw, 4.5rem); }
-.project + .project > .project-block:first-child { position: relative; padding-top: clamp(2.5rem, 2rem + 2vw, 3.75rem); }
-/* A rule across the text column (not the gutters) between projects. */
-.project + .project > .project-block:first-child::before { content: ""; position: absolute; top: 0; left: max(var(--gutter), env(safe-area-inset-left, 0px)); right: max(var(--gutter), env(safe-area-inset-right, 0px)); border-top: 1px solid var(--rule); }
+/* Each project's fold ends it with a rule across the text column (not the gutters); the next
+   project's title starts this far below it. */
+.project + .project > .project-block:first-child { padding-top: clamp(2.5rem, 2rem + 2vw, 3.75rem); }
 .project-head { display: grid; gap: var(--s3); max-width: 52rem; }
 .project-head h3 { font-size: clamp(1.625rem, 1.3rem + 1vw, 2.25rem); letter-spacing: -0.02em; line-height: 1.1; }
 .project-state { font-size: var(--t-small); color: var(--ink-2); }
@@ -354,10 +487,13 @@ abbr[title] { text-decoration: none; border-bottom: 1px dotted currentColor; cur
 .facts dt { font-size: var(--t-small); font-weight: 700; color: var(--ink-2); }
 .facts dd { color: var(--ink); }
 
-.next-line { max-width: var(--measure); padding-top: var(--s4); border-top: 1px solid var(--rule); font-size: var(--t-small); color: var(--ink-2); }
-.next-line a { font-weight: 700; color: var(--ink); }
+/* "Where this leads": each project's links into the directions below, underlined in their violet. */
+.next-line { max-width: var(--measure); font-size: var(--t-small); color: var(--ink-2); }
+.next-line a { font-weight: 700; color: var(--ink); text-decoration-color: var(--dir, #937cf1); }
+.next-key { margin-right: var(--s2); font: 400 var(--t-label)/1.6 var(--mono); color: var(--ink-3); }
 
-.more { max-width: 60rem; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+/* The fold's rules span the text column, like the figure above it; its text keeps a 60rem cap. */
+.more { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
 .more summary, .xp-more summary { list-style: none; cursor: pointer; }
 .more summary::-webkit-details-marker, .xp-more summary::-webkit-details-marker { display: none; }
 .more summary { display: flex; align-items: center; justify-content: space-between; gap: var(--s4); min-height: 52px; font-weight: 700; color: var(--ink); }
@@ -366,21 +502,27 @@ abbr[title] { text-decoration: none; border-bottom: 1px dotted currentColor; cur
 .pm::before, .pm::after { content: ""; position: absolute; top: 50%; left: 7px; right: 7px; height: 1.5px; margin-top: -0.75px; background: currentColor; transition: transform 220ms var(--ease-out); }
 .pm::after { transform: rotate(90deg); }
 details[open] > summary .pm::after { transform: rotate(0deg); }
-.more-body { display: grid; gap: var(--s5); padding: var(--s2) 0 var(--s6); color: var(--ink-2); }
+@media (forced-colors: active) { .pm::before, .pm::after { background: CanvasText; } }   /* the bars are backgrounds, which forced colours drop */
+.more-body { display: grid; gap: var(--s5); max-width: 60rem; padding: var(--s2) 0 var(--s6); color: var(--ink-2); }
 @media (min-width: 900px) { .more-body { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(2rem, 4vw, 4.5rem); } }
-.more-body h4, .xp-body h4 { margin-bottom: var(--s1); font-size: var(--t-small); color: var(--ink); }
+.more-body h4, .xp-body h5 { margin-bottom: var(--s1); font-size: var(--t-small); color: var(--ink); }
 .more-body p, .xp-body p { font-size: var(--t-small); line-height: 1.6; }
 
 @supports (interpolate-size: allow-keywords) {
   :root { interpolate-size: allow-keywords; }
   details::details-content { block-size: 0; overflow: clip; transition: block-size 220ms var(--ease-out), content-visibility 220ms allow-discrete; }
   details[open]::details-content { block-size: auto; }
+  .is-printing details::details-content { transition: none; }   /* main.js sets it while printing */
 }
 
 /* ---------- Figure stage (always viewer black) ---------- */
 .stage { margin-block: var(--s4); background: var(--viewer); color: var(--v-ink); border-block: 1px solid var(--chrome-rule); }
 .stage a { text-decoration-color: var(--v-yellow); }
 .stage-inner { display: grid; gap: var(--s5); padding-block: clamp(2rem, 1.5rem + 2vw, 3.5rem); }
+/* Each explorable figure's number, for references across the page (Fig. 4's caption names Fig. 1),
+   heads its title row on a line of its own: inside the tag it would wrap the tag on phones and at
+   768px. The figure's name includes it; the heading's does not. */
+.stage-num { flex-basis: 100%; margin-bottom: calc(-1 * var(--s1)); font: 400 var(--t-label)/1.4 var(--mono); color: var(--v-ink-3); }
 .stage-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--s2) var(--s5); }
 .stage-head h4 { font-size: var(--t-h3); letter-spacing: -0.015em; }
 .stage-tag { font: 400 var(--t-label)/1.4 var(--mono); color: var(--v-ink-3); }
@@ -388,12 +530,17 @@ details[open] > summary .pm::after { transform: rotate(0deg); }
 .views { display: grid; gap: var(--s5); }
 @media (min-width: 1000px) { .views { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; } }
 .view { position: relative; min-width: 0; }
-.view-stage { position: relative; }
+.view-stage { position: relative; container-type: inline-size; }
 .view-title { margin-bottom: var(--s2); font: 400 var(--t-label)/1.4 var(--mono); color: var(--v-ink-3); }
 .view-title strong { font-weight: 700; color: var(--v-ink-2); }
 .view canvas { display: block; width: 100%; }
-.fig-canvas { height: 340px; touch-action: pan-y; -webkit-tap-highlight-color: transparent; cursor: default; }
-.array-canvas { height: 220px; }
+/* Fig. 1 views take the heights fig-sources.js gives them, so nothing shifts when it runs: the
+   section shows 21.4 mm of depth at 1/40 of its width per mm, at most 17 px per mm, or 1/28 of
+   the width below 560 px (the script rounds the width); the array map is 39 by 21 mm.
+   Browsers without container units keep a fixed section height. */
+.fig-canvas { height: 340px; height: min(53.5cqi, 364px); touch-action: pan-y; -webkit-tap-highlight-color: transparent; cursor: default; }
+@container (width < 559.5px) { .fig-canvas { height: 76.4286cqi; } }
+.array-canvas { aspect-ratio: 39 / 21; }
 .fig-handle { position: absolute; left: 0; top: 0; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; touch-action: none; cursor: grab; }
 .fig-handle.is-dragging { cursor: grabbing; }
 .view-note { margin-top: var(--s2); font: 400 var(--t-label)/1.45 var(--mono); color: var(--v-ink-3); }
@@ -404,15 +551,35 @@ details[open] > summary .pm::after { transform: rotate(0deg); }
 .key-pair { display: inline-flex; align-items: flex-start; gap: var(--s3); max-width: 100%; }
 .key-pair .cbar { flex: none; padding-top: 0.2em; }
 .key-pair .view-note { min-width: 0; }
+/* In Figs. 2-3 a note stays beside its bar wherever 9rem fits there; with larger text it moves under
+   the bar rather than running out of the view. (Fig. 4's longer notes have their own rule, below.) */
+.stage:not([data-fig="write"]) .key-pair { flex-wrap: wrap; row-gap: var(--s2); }
+.stage:not([data-fig="write"]) .key-pair .cbar + .view-note { flex: 1 1 9rem; }
 .cbar-ramp[data-ramp="gray"]::after { display: none; }   /* the midpoint tick marks zero, which only the −/+ keys have */
 .cbar { display: inline-flex; align-items: center; gap: var(--s2); font: 700 var(--t-small)/1 var(--mono); color: var(--v-ink-2); }
-.cbar-ramp { position: relative; width: 5.5rem; height: 10px; border: 1px solid rgba(255, 255, 255, 0.22); background: linear-gradient(90deg, #a0ecff, #000 50%, #ffe478); }
+/* The keys' colours before the scripts paint them, and without scripts: the same 21 stops (every
+   5%) that figure-kit.js gives Figs. 2-3, fig-sources.js the array map, and figure-kit.js the gray key. */
+.cbar-ramp { position: relative; width: 5.5rem; height: 10px; border: 1px solid rgba(255, 255, 255, 0.22);
+  background: linear-gradient(90deg, #bbf8ff, #72d7f2, #3bb4e6, #1d91d8, #1d6fc5, #21549f, #1d3d7a, #152b54, #0e1b33, #0a0f19, #070707,
+    #190a0a, #320d0e, #521115, #77151a, #9d1f20, #c62c22, #e64f1d, #fb7d2a, #ffb55f, #ffeba2); }
+.cbar-ramp[data-colorbar] {
+  background: linear-gradient(90deg, #8ce4f7, #49bfea, #2299dc, #1c76c9, #205aa7, #1e4282, #172f5d, #10203d, #0b1424, #080c11, #070707,
+    #110808, #240b0b, #3c0f10, #5b1216, #7f171c, #a62121, #cd3421, #ee591c, #fd8e38, #ffca77); }
+.cbar-ramp[data-ramp="gray"] {
+  background: linear-gradient(90deg, #000000, #272727, #3c3c3c, #4c4c4c, #5a5a5a, #676767, #737373, #7e7e7e, #898989, #939393, #9c9c9c,
+    #a6a6a6, #aeaeae, #b7b7b7, #bfbfbf, #c7c7c7, #cfcfcf, #d7d7d7, #dedede, #e6e6e6, #ededed); }
+/* Forced colours leave the canvases as drawn, so the keys that explain them keep their colours. */
+@media (forced-colors: active) { .cbar-ramp, .key-est { forced-color-adjust: none; } }
 /* Track figures (speech decoding, behavior): one canvas of stacked tracks, scrubbed in time.
-   The scripts set the exact height; these defaults match it so nothing shifts. */
+   The scripts set the exact height, shorter when the canvas itself is under 560px wide (which also
+   happens just above 600px and 1000px viewports); these defaults match it so nothing shifts. The
+   container query tests that same width; the viewport query is the fallback without container queries. */
 .track-canvas { touch-action: pan-y; cursor: ew-resize; -webkit-tap-highlight-color: transparent; }
 .speech-canvas { height: 478px; }
-.behavior-canvas { height: 324px; }
-@media (max-width: 599.98px) { .speech-canvas { height: 428px; } .behavior-canvas { height: 318px; } }
+.behavior-canvas { height: 342px; }
+@media (max-width: 599.98px) { .speech-canvas { height: 428px; } .behavior-canvas { height: 336px; } }
+.track-view { container-type: inline-size; }
+@container (width < 560px) { .speech-canvas { height: 428px; } .behavior-canvas { height: 336px; } }
 .pose-canvas { height: 230px; }
 
 /* The sentence view: what the decoder produced, the target, and the candidates. */
@@ -420,6 +587,8 @@ details[open] > summary .pm::after { transform: rotate(0deg); }
 .sentence-decoded { font-size: var(--t-h3); font-weight: 700; line-height: 1.2; letter-spacing: -0.012em; color: var(--v-ink); }
 .word.is-wrong { color: var(--v-ink-2); text-decoration: underline dotted 2px; text-decoration-color: var(--v-ink-3); text-underline-offset: 0.18em; }
 .word.is-current { box-shadow: inset 0 -2px 0 var(--v-yellow); }
+/* Forced colours drop the shadow; a solid border marks the word instead, unlike a wrong word's dotted line. */
+@media (forced-colors: active) { .word.is-current { border-bottom: 2px solid Highlight; } }
 .sentence-note { font: 400 var(--t-label)/1.45 var(--mono); color: var(--v-ink-3); }
 .sentence-target, .pose-caption { font-size: var(--t-small); color: var(--v-ink-2); }
 .sentence-key { margin-right: var(--s2); font: 400 var(--t-label)/1.45 var(--mono); color: var(--v-ink-3); }
@@ -434,13 +603,68 @@ details[open] > summary .pm::after { transform: rotate(0deg); }
 
 .cbar-ramp::after { content: ""; position: absolute; left: 50%; top: -4px; bottom: -4px; width: 1px; margin-left: -0.5px; background: var(--v-ink-3); }
 
+/* ---------- Fig. 4: writing back through the same contacts ---------- */
+/* Two views of one fold, recording and stimulating, side by side from 1000px and stacked below.
+   The canvases take Fig. 1's heights from .fig-canvas (the same fold at the same scale), except
+   in views under 560px, where fig-write.js fits 37 mm across instead of 28 so that all nine
+   contacts stay in view: 21.4 mm deep at 1/37 of the width. */
+.stage-head h3 { font-size: var(--t-h3); letter-spacing: -0.015em; }
+/* The research figures get 48px above them: their project's grid gap plus their own margin. Fig. 4
+   sits in the plain flow of the Directions section, so it sets at least that space itself; from
+   about 640px the directions' larger bottom margin, which collapses with it, takes over. */
+.stage[data-fig="write"] { margin-top: var(--s7); }
+@media (min-width: 1000px) { .views-pair { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+@container (width < 559.5px) { .write-canvas { height: 57.8378cqi; } }
+/* Each readout's label keeps at least half the row: a long value ("−1.5%, the opposite way")
+   wraps under itself instead of squeezing its label to a word a line on phones. */
+[data-fig="write"] .stats div { grid-template-columns: minmax(50%, 1fr) auto; }
+/* The keys before the script paints them, with the same 21 stops: contacts black below 4% of the
+   strongest, then activityMap(v, 0.12 + 0.6 t); the push, activityMap(v, 0.1 + 0.9 t). */
+.cbar-ramp[data-ramp="contacts"] {
+  background: linear-gradient(90deg, #30ace4, #229adc, #1988d4, #1c77c9, #1f66bb, #2058a4, #1f4a8f, #1d3c79, #183160, #122548, #000000,
+    #471012, #5e1316, #76151a, #8c1a1e, #a32021, #ba2622, #ce3421, #df461f, #ee591b, #f96f20); }
+.cbar-ramp[data-ramp="push"] {
+  background: linear-gradient(90deg, #bbf8ff, #86e2f6, #59c9ed, #34afe5, #1f94da, #1b7acb, #1f61b3, #204c92, #1b3871, #13274c, #2a0c0c,
+    #4a1113, #6e1419, #901b1e, #b22422, #d13721, #e9531d, #fa7424, #fe9e46, #ffc671, #ffeba2); }
+.key-flow { flex: none; margin-top: 0.3em; color: var(--v-ink); }
+/* The keys' notes are long. Where a view is too narrow for a note to sit beside its colour bar in
+   lines of a useful length (phones: eleven short lines at 320px), it wraps under the bar and
+   takes the full width. */
+[data-fig="write"] .key-pair { flex-wrap: wrap; row-gap: var(--s2); }
+[data-fig="write"] .cbar + .view-note { flex: 1 1 14rem; }
+/* "Your own": the contacts in the Stimulate view become buttons (pointer), mirrored by a row of
+   toggles after the pattern choice (keyboard and screen readers). The row has one column per
+   contact, left to right as on the strip, wherever each toggle gets at least 44px; otherwise
+   five and four, so no toggle is ever left alone on a line. */
+.contact-pads { position: absolute; inset: 0; pointer-events: none; }
+.contact-pad { position: absolute; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; pointer-events: auto; -webkit-tap-highlight-color: transparent; transition: box-shadow 160ms ease; }
+.contact-pad:hover { box-shadow: 0 0 0 1.5px var(--v-yellow); }
+.pattern-contacts { container-type: inline-size; }
+.contact-chips { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: var(--s2); }
+@media (max-width: 519.98px) { .contact-chips { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+@container (width < 460px) { .contact-chips { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.contact-chip { display: grid; place-content: center; justify-items: center; min-width: 0; padding: 4px 2px; line-height: 1.15; }
+.contact-chip .cc-pos { font: 400 0.75rem/1.2 var(--mono); color: var(--v-ink-3); }
+.contact-chip .cc-state { font-weight: 700; color: var(--v-ink); }
+.contact-chip[data-state="anode"] { border-color: #f96f20; box-shadow: inset 0 -3px 0 #f96f20; }    /* the contacts' capped warm end */
+.contact-chip[data-state="cathode"] { border-color: #30ace4; box-shadow: inset 0 -3px 0 #30ace4; }  /* and cool end */
+@media (forced-colors: active) {
+  /* The arrow is an SVG, which keeps an explicitly set colour in forced colours: pale #ededed on a
+     white Canvas in a light scheme. */
+  [data-fig="write"] .key-flow { color: CanvasText; }
+  .contact-chip[data-state="anode"], .contact-chip[data-state="cathode"] { border-width: 3px; }   /* the coloured edge is gone */
+}
+
 .controls { display: grid; gap: var(--s5) var(--s7); padding-top: var(--s5); border-top: 1px solid var(--chrome-rule); }
 @media (min-width: 900px) { .controls { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); } }
-.control { display: grid; gap: var(--s3); min-width: 0; margin: 0; padding: 0; border: 0; }
+/* A control stretched to the height of the one beside it keeps its rows at their own heights, so
+   options and their labels are no taller than they look. */
+.control { display: grid; align-content: start; gap: var(--s3); min-width: 0; margin: 0; padding: 0; border: 0; }
 .control-label { padding: 0; font-size: var(--t-small); font-weight: 700; color: var(--v-ink); }
 .control-hint { font-size: 0.9375rem; color: var(--v-ink-3); }
 .jumps { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); color: var(--v-ink-3); font-size: 0.9375rem; }
 .chip-btn {
+  position: relative;
   min-height: 44px;
   padding: 0 var(--s4);
   border: 1px solid var(--v-rule-strong);
@@ -451,6 +675,9 @@ details[open] > summary .pm::after { transform: rotate(0deg); }
   cursor: pointer;
   transition: border-color 160ms ease, color 160ms ease, transform 160ms var(--ease-out);
 }
+/* The target reaches 3px past each side, so a one-letter chip ("I") is still 44px wide without
+   widening the chip, which would push Fig. 2's row of words onto two lines on a 375px phone. */
+.chip-btn::after { content: ""; position: absolute; inset: -1px -3px; }
 .chip-btn:hover { border-color: var(--v-yellow); color: var(--v-ink); }
 .chip-btn:active { transform: scale(0.97); }
 .chip-btn[data-active] { border-color: var(--v-yellow); color: var(--v-ink); box-shadow: inset 0 -2px 0 var(--v-yellow); }
@@ -472,6 +699,13 @@ details[open] > summary .pm::after { transform: rotate(0deg); }
 .range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 28px; margin-top: -13px; border: 2px solid #000; border-radius: 2px; background: var(--v-yellow); }
 .range::-moz-range-thumb { width: 14px; height: 24px; border: 2px solid #000; border-radius: 2px; background: var(--v-yellow); }
 .range:focus-visible { outline: 2px solid var(--v-red); outline-offset: 2px; }
+/* Forced colours drop the fill and the inset line that mark the chosen option and the active
+   preset, and the slider's track is a fill: system colours bring them back, in every figure. */
+@media (forced-colors: active) {
+  .seg input:checked + span, .chip-btn[data-active] { forced-color-adjust: none; background: Highlight; border-color: Highlight; color: HighlightText; box-shadow: none; }
+  .range::-webkit-slider-runnable-track { forced-color-adjust: none; background: CanvasText; }
+  .range::-moz-range-track { forced-color-adjust: none; background: CanvasText; }
+}
 
 .readouts { display: grid; gap: var(--s4); padding-top: var(--s5); border-top: 1px solid var(--chrome-rule); }
 @media (min-width: 900px) { .readouts { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); column-gap: var(--s7); } }
@@ -480,23 +714,195 @@ details[open] > summary .pm::after { transform: rotate(0deg); }
 .legend { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s5); margin-top: var(--s3); font-size: 0.9375rem; color: var(--v-ink-2); }
 .legend span { display: inline-flex; align-items: center; gap: var(--s2); }
 .key { display: inline-block; flex: none; }
-.key-est { width: 28px; height: 10px; border-radius: 2px; background: linear-gradient(90deg, #1e5ee2, #2cb0ec 40%, #d6201c 60%, #f68c1e); }
+.key-est { width: 28px; height: 10px; border-radius: 2px; background: linear-gradient(90deg, #1e6bc2, #28a6e2 40%, #c22823 60%, #f86619); }   /* activity map arms, steps 0.5 and 0.7 */
 .key-true { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--v-ink); }
-.stats { display: grid; gap: var(--s3); align-content: start; }
-.stats div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--s4); padding-bottom: var(--s2); border-bottom: 1px solid var(--chrome-rule); }
+.stats { display: grid; gap: var(--s3); align-content: start; container-type: inline-size; }
+/* A label's column never narrows below its longest word, so larger text cannot run it into its value. */
+.stats div { display: grid; grid-template-columns: minmax(min-content, 1fr) auto; gap: var(--s4); padding-bottom: var(--s2); border-bottom: 1px solid var(--chrome-rule); }
 .stats dt { font-size: 0.9375rem; color: var(--v-ink-3); }
 .stats dd { font: 400 var(--t-small)/1.4 var(--mono); color: var(--v-ink); text-align: right; font-variant-numeric: tabular-nums; }
-.stage-caption { max-width: 72ch; padding-top: var(--s4); border-top: 1px solid var(--chrome-rule); font-size: 0.9375rem; line-height: 1.55; color: var(--v-ink-3); }
+/* Where that leaves a value too little room beside its label (very large text on a phone: "sideways,"
+   beside "Orientation" needs 10.75em), each value goes under its label. The width is in the
+   readouts' own em, so it follows their text size; at the default size no phone comes near it. */
+@container (width < 11em) {
+  .readouts .stats div { grid-template-columns: minmax(0, 1fr); row-gap: var(--s1); }
+  .readouts .stats dd { text-align: left; }
+}
+.stage-caption { max-width: 52ch; padding-top: var(--s4); border-top: 1px solid var(--chrome-rule); font-size: 0.9375rem; line-height: 1.55; color: var(--v-ink-3); }
 
-/* ---------- Next questions ---------- */
-.questions { display: grid; gap: 0; border-top: 1px solid var(--rule); }
-.question { display: grid; gap: var(--s4) clamp(2rem, 5vw, 5rem); padding-block: clamp(1.75rem, 1.25rem + 1.5vw, 2.75rem); border-bottom: 1px solid var(--rule); }
-@media (min-width: 1000px) { .question { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); } }
-.question h3 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); letter-spacing: -0.02em; line-height: 1.15; }
-.question-body { display: grid; gap: var(--s4); align-content: start; max-width: var(--measure); }
-.question-body p { color: var(--ink-2); }
-.question-body .trace { font-size: var(--t-small); color: var(--ink-3); }
-.question-body .trace a { color: var(--ink-2); }
+/* ---------- Directions: one loop, four directions ----------
+   assets/js/directions.js draws the loop into .loop-stage from the words in index.html. Its
+   colours are tokens, so the theme toggle restyles it without a redraw: --dir (violet, "ahead")
+   for the parts of the loop, the inks for its points and for the record of my work, --track for
+   the ring, and the contour colours for the brain. Emphasis is stroke width and label colour;
+   nothing on the loop fades. */
+.section-head .directions-ways { max-width: var(--measure); font-size: var(--t-body); line-height: 1.6; }
+/* The space under the four directions matches the closing line's: Fig. 4 goes between them, and
+   without it the two margins collapse into one. */
+.directions-grid { display: grid; gap: var(--s7); margin-bottom: clamp(2.5rem, 2rem + 2.5vw, 4.5rem); }
+@media (min-width: 1000px) {
+  .directions-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); column-gap: clamp(2.5rem, 5vw, 5.5rem); align-items: start; }
+  /* While the four directions scroll past, the loop stays beside them and follows the one read. */
+  .loop { position: sticky; top: calc(var(--header-h) + env(safe-area-inset-top, 0px) + 24px); }
+}
+@media (min-width: 1000px) and (max-height: 720px) { .loop { position: static; } }
+/* directions.js unsticks the loop where the window cannot hold it legibly, as with larger text,
+   where the ring would have to shrink until its words overlapped. */
+.loop.is-unstuck { position: static; }
+@media (min-width: 640px) and (max-width: 999.98px) { .loop { max-width: 42rem; } }
+
+/* A container: the key and the drawing's reserved height follow the figure's own width. */
+.loop { display: grid; gap: var(--s3); min-width: 0; margin: 0; container-type: inline-size; }
+.loop-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--s1) var(--s4); }
+.loop-title, .loop-tag { font: 400 var(--t-label)/1.4 var(--mono); color: var(--ink-3); }
+.loop-title strong { font-weight: 700; color: var(--ink-2); }
+.loop-stage { position: relative; }
+/* Phones: the drawing runs to the screen's edges, as the figures do, so its labels keep their size. */
+@media (max-width: 639.98px) {
+  .loop-stage { margin-left: calc(-1 * max(var(--gutter), env(safe-area-inset-left, 0px))); margin-right: calc(-1 * max(var(--gutter), env(safe-area-inset-right, 0px))); }
+  .loop-points { padding-inline: max(var(--gutter), env(safe-area-inset-left, 0px)) max(var(--gutter), env(safe-area-inset-right, 0px)); }
+}
+/* Until the loop is drawn (without scripts, or if directions.js does not run), the points stand in
+   for the drawing as a line of text. Once it is drawn, the list gives way to it; with scripts the
+   drawing's height is held meanwhile, so nothing moves when it arrives. */
+.loop-points { display: flex; flex-wrap: wrap; gap: var(--s1) var(--s2); font: 700 var(--t-label)/1.6 var(--mono); color: var(--ink-2); }
+.loop-points li + li::before { content: "→"; content: "→" / ""; margin-right: var(--s2); font-weight: 400; color: var(--ink-3); }
+.loop-points span { font-weight: 400; color: var(--ink-3); }
+.loop-stage.is-drawn .loop-points { display: none; }
+/* The drawing's height follows its width (about 1.4 times it, less 238px, within 236 to 474px). */
+.js .loop-stage:not(.is-drawn) { min-height: clamp(236px, 140cqi - 238px, 474px); }
+@media (max-width: 639.98px) { .js .loop-stage:not(.is-drawn) { min-height: clamp(236px, 140vw - 238px, 474px); } }
+html:not(.js) .loop-cap { display: none; }   /* it narrates the drawing */
+/* The key: the two kinds of line, then the two kinds of mark, in aligned columns; one column
+   where two would squeeze their words. */
+.loop-key { display: grid; grid-template-columns: repeat(2, minmax(0, max-content)); gap: var(--s2) var(--s5); padding-top: var(--s3); border-top: 1px solid var(--rule); font: 400 var(--t-label)/1.45 var(--mono); color: var(--ink-3); }
+@container (max-width: 469.98px) { .loop-key { grid-template-columns: minmax(0, 1fr); } }
+.loop-key li { display: inline-flex; align-items: center; gap: var(--s2); }
+.lk { flex: none; overflow: visible; }
+/* About 80 characters a line. Any narrower and the caption takes another line beside the
+   directions, which the sticky loop, sized to fit the window, would pay for with a smaller ring. */
+.loop-cap { max-width: 54ch; font-size: 0.9375rem; line-height: 1.55; color: var(--ink-3); }
+
+/* The drawing */
+.lp { display: block; width: 100%; height: auto; overflow: visible; }
+.lp-meter { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: hidden; visibility: hidden; pointer-events: none; }
+.lp-ring { fill: none; stroke: var(--track, #3a3a3a); stroke-width: 1; }
+.lp-arc, .lk-line { fill: none; stroke: var(--dir, #937cf1); stroke-width: 3.5; stroke-linecap: round; }
+.lp-arc.is-long, .lk-line.is-long { stroke-dasharray: 5 9; }
+.lp-arc { transition: stroke-width 220ms var(--ease-out); }
+.lp-arc.is-active { stroke-width: 6.5; }
+.lp-chev { fill: none; stroke: var(--dir, #937cf1); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: stroke-width 220ms var(--ease-out); }
+.lp-chev.is-active { stroke-width: 3; }
+.lp-link, .lp-mark { cursor: pointer; text-decoration: none; }   /* SVG text would take the site's link underline */
+.lp-link:focus-visible { outline: none; }   /* the ring below follows the arc instead of a box */
+.lp-hit { fill: none; stroke: transparent; stroke-width: 28; stroke-linecap: round; pointer-events: stroke; }
+.lp-halo, .lp-halo-gap { fill: none; stroke: none; stroke-linecap: round; stroke-linejoin: round; }
+.lp-link:focus-visible .lp-halo { stroke: var(--pial); stroke-width: 16; }
+.lp-link:focus-visible .lp-halo-gap { stroke: var(--ground); stroke-width: 11.5; }
+.lp-tie { fill: none; stroke: var(--ink-3); stroke-width: 1.4; stroke-linecap: round; stroke-dasharray: 0 4.5; }
+/* Points and arrowheads lie over the parts' links; a point belongs to two parts, so the pointer
+   passes through to the part beneath. */
+.lp-points, .lp-chevs { pointer-events: none; }
+.lp-node { fill: var(--ground); stroke: var(--ink-3); stroke-width: 1.5; transition: stroke 220ms ease; }
+.lp-node.is-on { stroke: var(--ink); }
+.lp-brain-pial { fill: var(--ground); stroke: var(--pial); stroke-width: 2.25; }
+.lp-brain-wm { fill: var(--contour); }
+.lp-point { font: 700 13px var(--mono); fill: var(--ink-2); transition: fill 220ms ease; }
+.lp-point.is-on { fill: var(--ink); }
+.lp-sub, .lp-when, .lp-via { font: 400 12px var(--mono); fill: var(--ink-3); }
+.lp-name { font: 700 16px var(--font); letter-spacing: -0.005em; fill: var(--ink); transition: fill 220ms ease; }
+.loop[data-active] .lp-name { fill: var(--ink-3); }
+.loop[data-active] .lp-label.is-active .lp-name { fill: var(--ink); }
+.is-narrow .lp-point { font-size: 12px; }
+.is-narrow .lp-sub, .is-narrow .lp-when, .is-narrow .lp-via, .is-tiny .lp-via { font-size: 11px; }
+.is-narrow .lp-name { font-size: 15px; }
+.is-tiny .lp-point { font-size: 11px; }
+.is-tiny .lp-name { font-size: 14px; }
+/* Marks: a contact on the strip. The ground-coloured ring parts the arc around each one. */
+.lp-mark:focus { outline: none; }   /* reached by pointer only; the list's links carry focus */
+.lp-mark-hit { fill: transparent; }
+.lp-mark-ring { fill: var(--ground); }
+.lp-mark-halo { fill: none; stroke: var(--ink); stroke-width: 1.5; opacity: 0; transition: opacity 160ms ease; }
+.lp-mark-dot { fill: var(--ground); stroke: var(--ink-2); stroke-width: 1.5; transform-box: fill-box; transform-origin: center; transition: transform 160ms var(--ease-out); }
+.lp-mark-dot.is-current { fill: var(--ink); stroke: var(--ink); }
+.lp-mark.is-active .lp-mark-dot { stroke: var(--ink); }
+.lp-mark.is-lit .lp-mark-halo { opacity: 1; }
+.lp-mark.is-lit .lp-mark-dot { transform: scale(1.25); }
+/* A mark's tooltip. directions.js places it beside the mark, clear of the drawing's words, and
+   keeps it no wider than the ring. */
+.lp-tip { position: absolute; z-index: 2; width: max-content; max-width: min(17rem, 80vw); padding: var(--s1) var(--s2); background: var(--raised); border: 1px solid var(--rule-strong); border-radius: var(--radius); font: 400 var(--t-label)/1.4 var(--mono); color: var(--ink); pointer-events: none; }
+
+/* The four directions */
+.directions-list { display: grid; border-top: 1px solid var(--rule); }
+.direction { position: relative; display: grid; gap: var(--s4); padding-block: var(--s6) clamp(2.25rem, 1.75rem + 1.5vw, 3.25rem); border-bottom: 1px solid var(--rule); scroll-margin-top: var(--s4); }
+/* Links to the earlier questions (#next-anatomy, #next-signal, #next-behavior) land on the direction that took each in. */
+.anchor-alias { position: absolute; top: 0; left: 0; scroll-margin-top: var(--s4); }
+.direction-meta { display: flex; align-items: center; gap: var(--s3); }
+.glyph { flex: none; overflow: visible; }
+.gl-ring { fill: none; stroke: var(--track, #3a3a3a); stroke-width: 1.5; }
+.gl-arc { fill: none; stroke: var(--dir, #937cf1); stroke-width: 3; stroke-linecap: round; transition: stroke-width 220ms var(--ease-out); }
+.gl-arc.is-long { stroke-dasharray: 2.5 5.5; }
+.gl-brain { fill: var(--contour); }
+.direction.is-active .gl-arc { stroke-width: 4.5; }
+.direction-when { font: 400 var(--t-label)/1.5 var(--mono); color: var(--ink-3); }
+.direction-when strong { font: 700 var(--t-small)/1.4 var(--font); color: var(--ink); }
+.direction h3 { max-width: 30ch; font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); letter-spacing: -0.02em; line-height: 1.15; }
+.direction-body { display: grid; gap: var(--s4); max-width: var(--measure); }
+.direction-body > p:first-child { color: var(--ink-2); }
+.direction-q summary { display: inline-flex; align-items: center; gap: var(--s3); min-height: 44px; font: 400 var(--t-label)/1.4 var(--mono); color: var(--ink-2); list-style: none; cursor: pointer; }
+.direction-q summary::-webkit-details-marker { display: none; }
+.direction-q summary:hover .pm { border-color: var(--contour); }
+.direction-q ul { display: grid; gap: var(--s2); padding-bottom: var(--s2); }
+.direction-q li { position: relative; padding-left: 1.4rem; color: var(--ink); }
+.direction-q li::before { content: ""; position: absolute; left: 0.1rem; top: 0.6em; width: 9px; height: 9px; border: 1.5px solid var(--dir, #937cf1); border-radius: 50%; }
+.direction .trace { font-size: var(--t-small); color: var(--ink-3); }
+.direction .trace a { color: var(--ink-2); }
+.trace-key { margin-right: var(--s2); font: 400 var(--t-label)/1.6 var(--mono); color: var(--ink-3); }
+/* Each piece of work wears its mark from the loop: filled for current work, open for earlier work.
+   The mark sits in the link's own padding, so a line never breaks between it and its words. */
+.direction .trace a[data-mark] { position: relative; padding-left: 0.9em; }
+.direction .trace a[data-mark]::before { content: ""; position: absolute; left: 0.05em; top: calc(0.79em - 4px); width: 8px; height: 8px; border: 1.5px solid var(--ink-2); border-radius: 50%; }
+.direction .trace a[data-mark="current"]::before { border-color: var(--ink); background: var(--ink); }
+.direction-lead { font-size: var(--t-small); color: var(--ink-3); }
+.direction-lead a { font-weight: 700; color: var(--ink); }
+.directions-close { max-width: var(--measure); margin-top: clamp(2.5rem, 2rem + 2.5vw, 4.5rem); font-size: var(--t-lede); line-height: 1.5; color: var(--ink-2); }
+.directions-close a { color: var(--ink); }
+@media (max-width: 640px) {
+  .section-head .directions-ways { font-size: var(--t-small); }
+  .directions-close { font-size: 1.125rem; }
+}
+/* Phones: the part's path takes a line of its own under the name and time. */
+@media (max-width: 639.98px) {
+  .direction-path { display: block; }
+  .direction-path .sep { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-arc, .lp-chev, .lp-node, .lp-point, .lp-name, .lp-mark-halo, .lp-mark-dot, .gl-arc { transition: none; }
+}
+/* Forced colours: the loop keeps its meaning in system colours. Parts in CanvasText, the stressed
+   part in Highlight, filled and open marks as filled and open shapes. */
+@media (forced-colors: active) {
+  .lp-ring, .gl-ring { stroke: GrayText; }
+  .lp-arc, .lp-chev, .lk-line, .gl-arc, .lp-tie { stroke: CanvasText; }
+  .lp-arc.is-active, .lp-chev.is-active { stroke: Highlight; }
+  .lp-link:focus-visible .lp-halo, .lp-mark-halo { stroke: Highlight; }
+  .lp-link:focus-visible .lp-halo-gap { stroke: Canvas; }
+  .lp-node, .lp-brain-pial { fill: Canvas; stroke: CanvasText; }
+  .lp-brain-wm, .gl-brain { fill: CanvasText; }
+  .lp-point, .lp-sub, .lp-name, .lp-when, .lp-via, .loop[data-active] .lp-name { fill: CanvasText; }
+  .loop[data-active] .lp-label.is-active .lp-name { fill: Highlight; }
+  .lp-mark-ring { fill: Canvas; }
+  .lp-mark-dot { fill: Canvas; stroke: CanvasText; }
+  .lp-mark-dot.is-current { fill: CanvasText; }
+  .direction-q li::before { border-color: CanvasText; }
+  .direction .trace a[data-mark]::before { border-color: LinkText; background: Canvas; }
+  .direction .trace a[data-mark="current"]::before { background: LinkText; }
+  .lp-tip { border-color: CanvasText; }
+}
+@media print {
+  .loop { position: static; }
+  .lp-tip { display: none; }
+}
 
 /* ---------- Publications ---------- */
 .pubs { display: grid; border-top: 1px solid var(--rule); }
@@ -521,6 +927,9 @@ details[open] > summary .pm::after { transform: rotate(0deg); }
 .portrait figcaption { margin-top: var(--s3); font-size: var(--t-label); color: var(--ink-3); }
 .about-main { display: grid; gap: var(--s7); min-width: 0; }
 .about-main h2 { font-size: var(--t-h2); letter-spacing: -0.025em; line-height: 1.06; }
+/* The heading sits 16px above its text, as every section's heading does; the grid's 48px stays
+   between the blocks below it. */
+.about-main h2 + .prose { margin-top: calc(var(--s4) - var(--s7)); }
 .prose { display: grid; gap: 1.1em; max-width: var(--measure); font-size: var(--t-lede); line-height: 1.55; }
 .facts-inline { display: grid; gap: var(--s5); max-width: var(--measure); }
 .facts-inline div { display: grid; gap: var(--s1); }
@@ -531,18 +940,119 @@ details[open] > summary .pm::after { transform: rotate(0deg); }
 .experience h3 { font-size: clamp(1.625rem, 1.3rem + 1vw, 2.25rem); letter-spacing: -0.02em; }
 .xp-list { position: relative; display: grid; border-top: 1px solid var(--rule); }
 .xp { display: grid; gap: var(--s1) var(--s6); padding-block: var(--s5); border-bottom: 1px solid var(--rule); scroll-margin-top: var(--s4); }
-@media (min-width: 700px) { .xp { grid-template-columns: 9.5rem minmax(0, 1fr); } }
+/* Beside the entries, each date keeps to one line: 11rem holds the longest ("Feb 2023 – Feb 2024"). */
+@media (min-width: 700px) {
+  .xp { grid-template-columns: 11rem minmax(0, 1fr); }
+  .xp-date { white-space: nowrap; }
+}
 .xp-date { font: 400 var(--t-label)/1.6 var(--mono); color: var(--ink-3); padding-top: 2px; }
 .xp-main { display: grid; gap: var(--s2); min-width: 0; max-width: var(--measure); }
 .xp-role { font-size: 1.1875rem; line-height: 1.3; letter-spacing: -0.005em; }
 .xp-org { color: var(--ink-2); font-size: var(--t-small); }
-.xp-key { font-size: var(--t-small); line-height: 1.55; color: var(--ink); }
+.xp-key { max-width: var(--measure); font-size: var(--t-small); line-height: 1.55; color: var(--ink); }   /* from 1000px .xp-main has no box (display: contents), so the key sets its own measure */
 .xp-more summary { display: inline-flex; align-items: center; gap: var(--s3); min-height: 44px; font-size: var(--t-small); font-weight: 700; color: var(--ink-2); }
 .xp-more[open] summary { color: var(--ink); }
 .xp-body { display: grid; gap: var(--s4); padding-bottom: var(--s2); color: var(--ink-2); }
-.xp.is-target { animation: target-flash 1200ms var(--ease-out) 1; }
+.is-target { outline: 2px solid transparent; outline-offset: 6px; animation: target-flash 2s var(--ease-out) 1, target-ring 2s var(--ease-out) 1; }
+
+/* ---------- Arrivals, the signals chart and the tools ----------
+   Arrival: what an in-page link lands on (an entry, a project's title block, a direction, a block
+   in a panel, a figure's title row) is ringed in the contour colour and washed for a moment, so the
+   eye finds it among its neighbours. main.js adds .is-target and takes it off after two seconds.
+   On viewer black the ring is the viewer's yellow. */
+.stage .is-target, .hero .is-target { --arrive: var(--v-yellow); }
+@keyframes target-ring { 0%, 55% { outline-color: var(--arrive, var(--contour)); } to { outline-color: transparent; } }
+/* A panel clips its content (for its opening animation); while it holds a ringed block, the clip
+   leaves room for the ring. A link that opens a panel opens it at once (main.js adds .is-instant
+   for a frame), so the browser has a place to scroll to. */
+details:has(.is-target)::details-content { overflow-clip-margin: 8px; }
+details.is-instant::details-content { transition: none; }
+/* Links to a panel's blocks, the tools, publications and a figure's title land clear of the bar, as
+   entries and projects do, so the ring shows whole. (Links to a whole figure, such as Fig. 4's
+   caption to Fig. 1, land with its stage under the bar and ring its title row, number and all.) */
+.xp-body > [id], #tools, .pub, .stage-head > [id] { scroll-margin-top: var(--s4); }
+
+/* Signals by year: assets/js/signals.js draws it into .signals-stage from the list of rows there
+   and the data attributes on each li.xp. Its colours are tokens, so the theme toggle restyles it
+   without a redraw. Current roles are filled bars and earlier ones open, as the marks on the loop
+   are; the line in the contour colour is today. */
+.signals { display: grid; gap: var(--s3); min-width: 0; margin: 0 0 var(--s5); container-type: inline-size; }
+.signals-title { font: 400 var(--t-label)/1.4 var(--mono); color: var(--ink-3); }
+.signals-title strong { font-weight: 700; color: var(--ink-2); }
+.signals-stage svg { display: block; width: 100%; height: auto; }
+/* Until the script draws, or if it cannot, the rows stand in the drawing's place as a list. Its
+   height is held (five rows of one lane each), so the entries below do not move when it is drawn. */
+.signals-rows { display: grid; gap: var(--s1); font: 700 var(--t-label)/1.6 var(--mono); color: var(--ink-2); }
+.signals-rows span { font-weight: 400; color: var(--ink-3); }
+.js .signals-stage:not(.is-drawn) { min-height: 288px; }
+@container (max-width: 599.98px) { .js .signals-stage:not(.is-drawn) { min-height: 378px; } }
+html:not(.js) .signals { display: none; }   /* drawn by script; without it the entries below say the same */
+.signals-cap { max-width: 52ch; font-size: 0.9375rem; line-height: 1.55; color: var(--ink-3); text-wrap: pretty; }
+.sg-grid, .sg-rule { stroke: var(--track, var(--rule)); stroke-width: 1; }
+.sg-now { stroke: var(--contour); stroke-width: 1.5; }
+.sg-now-label { font: 400 12px var(--mono); fill: var(--contour); }
+.sg-year { font: 400 12px var(--mono); fill: var(--ink-3); }
+.sg-row-name { font: 700 13px var(--mono); fill: var(--ink-2); }
+.sg-row-sub { font: 400 12px var(--mono); fill: var(--ink-3); }
+.sg-link { cursor: pointer; text-decoration: none; }   /* SVG text would take the site's link underline */
+.sg-link:focus-visible { outline: none; }               /* the ring below fits the bar and its label */
+.sg-hit { fill: transparent; }   /* where the pointer finds a bar's link: on the bar and on its label */
+.sg-ring { fill: none; stroke: none; pointer-events: none; }
+.sg-link:focus-visible .sg-ring { stroke: var(--pial); stroke-width: 2; }
+.sg-bar { fill: var(--ground); stroke: var(--ink-3); stroke-width: 1.5; transition: stroke 160ms ease; }
+.sg-bar.is-now { fill: var(--ink); stroke: var(--ink); }
+.sg-bar-label { font: 400 12px var(--mono); fill: var(--ink-2); transition: fill 160ms ease; }
+.sg-bar-label.is-now { font-weight: 700; fill: var(--ink); }
+.sg-link:hover .sg-bar, .sg-link:focus-visible .sg-bar { stroke: var(--ink); stroke-width: 2; }
+.sg-link:hover .sg-bar-label, .sg-link:focus-visible .sg-bar-label { fill: var(--ink); }
+.sg-link.is-tucked .sg-bar-label { visibility: hidden; }   /* no free place: shown over the chart on hover or focus */
+.sg-pop-bg { fill: var(--ground); stroke: var(--rule-strong); stroke-width: 1; }
+/* The chart's words carry a halo of the ground colour, so grid lines pass behind them, not through. */
+.sg-row-name, .sg-row-sub, .sg-year, .sg-now-label, .sg-bar-label { paint-order: stroke; stroke: var(--ground); stroke-width: 3px; stroke-linejoin: round; }
+.sg-row-name { stroke-width: 4px; }
+
+/* About: the tools in three groups, each named in the mono label voice. Where there is room the
+   names share a column and each group reads as one line. */
+.tools { display: grid; gap: var(--s3); }
+.tools li { display: grid; }
+.tools-kind { font: 400 var(--t-label)/1.6 var(--mono); color: var(--ink-3); }
+@media (min-width: 640px) {
+  .tools { grid-template-columns: max-content minmax(0, 1fr); gap: var(--s1) var(--s5); }
+  .tools li { grid-column: 1 / -1; grid-template-columns: subgrid; align-items: baseline; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The ring holds still for its two seconds and then goes, with no fade. */
+  .is-target { animation-duration: 2s; animation-timing-function: steps(1, end); }
+  .sg-bar, .sg-bar-label { transition: none; }
+}
+@media (forced-colors: active) {
+  .is-target { animation: none; outline-color: Highlight; }
+  .sg-grid, .sg-rule { stroke: GrayText; }
+  .sg-now { stroke: CanvasText; }
+  .sg-now-label, .sg-year, .sg-row-name, .sg-row-sub { fill: CanvasText; }
+  .sg-bar { fill: Canvas; stroke: LinkText; }
+  .sg-bar.is-now, .sg-bar-label, .sg-bar-label.is-now { fill: LinkText; }
+  .sg-link:hover .sg-bar, .sg-link:focus-visible .sg-bar { stroke: Highlight; }
+  .sg-link:hover .sg-bar-label, .sg-link:focus-visible .sg-bar-label { fill: Highlight; }
+  .sg-link:focus-visible .sg-ring { stroke: Highlight; }
+  .sg-pop-bg { fill: Canvas; stroke: CanvasText; }
+  .sg-row-name, .sg-row-sub, .sg-year, .sg-now-label, .sg-bar-label { stroke: Canvas; }
+}
+@media print {
+  .signals { break-inside: avoid; }
+  .sg-pop { display: none; }
+  /* The page prints on white whatever the theme, so the open bars and the halos are white too,
+     and the lines take the light theme's colours: its hairline grey, and its darker contour for
+     today (the dark theme's bright yellow would barely show on paper). */
+  .sg-bar:not(.is-now) { fill: #fff; }
+  .sg-row-name, .sg-row-sub, .sg-year, .sg-now-label, .sg-bar-label { stroke: #fff; }
+  .sg-grid, .sg-rule { stroke: #bfc3c3; }
+  .sg-now { stroke: #7a5b00; }
+  .sg-now-label { fill: #7a5b00; }
+}
 @media (min-width: 1000px) {
-  .xp { grid-template-columns: 9.5rem minmax(0, 4fr) minmax(0, 6fr); column-gap: clamp(2rem, 3vw, 3.5rem); row-gap: var(--s1); align-items: start; }
+  .xp { grid-template-columns: 11rem minmax(0, 4fr) minmax(0, 6fr); column-gap: clamp(2rem, 3vw, 3.5rem); row-gap: var(--s1); align-items: start; }
   .xp-main { display: contents; }
   .xp-date { grid-column: 1; grid-row: 1 / span 3; }
   .xp-role { grid-column: 2; grid-row: 1; }
@@ -590,14 +1100,46 @@ details[open] > summary .pm::after { transform: rotate(0deg); }
   .btn:active, .chip-btn:active, .icon-btn:active { transform: none; }
   .nav-list a::after, .pm::before, .pm::after { transition: none; }
   details::details-content { transition: none !important; }
-  .xp.is-target { animation-duration: 500ms; }
 }
 
 /* ---------- Print ---------- */
 @media print {
-  .bar, .viewer, .viewer-status, .controls, .views, .copy-btn, .skip-link, .theme-toggle { display: none !important; }
-  :root { --ground: #fff; --ink: #000; --ink-2: #222; --ink-3: #444; }
+  .bar, .viewer, .viewer-status, .controls, .views, .copy-btn, .skip-link, .theme-toggle, .hero-actions { display: none !important; }
+  /* Paper is white whatever the theme on screen: every token the two themes set differently takes
+     the light theme's value (the inks and the ground go to black and white), so printing from the
+     dark theme matches printing from the light one. The doubled :root outranks both theme blocks,
+     and the light colour scheme keeps a dark canvas out of the page margins when backgrounds print. */
+  :root:root {
+    color-scheme: light;
+    --ground: #fff;
+    --raised: #fff;
+    --rule: #d6d9d9;
+    --rule-strong: #a3a8a8;
+    --ink: #000;
+    --ink-2: #222;
+    --ink-3: #444;
+    --contour: #7a5b00;
+    --pial: #b8235f;
+    --selection: rgba(184, 35, 95, 0.18);
+    --scroll-thumb: #a3a8a8;
+    --dir: #6d48d1;
+    --track: #bfc3c3;
+  }
   body, .hero, .stage { background: #fff !important; color: #000 !important; }
   .hero *, .stage * { color: #000 !important; }
-  details > *:not(summary) { display: block !important; }
+  .hero a, .brief a, .stage a { text-decoration-color: currentColor; }   /* not the viewer's yellow, which barely shows on white */
+  /* Collapsed sections print open. A closed <details> hides its content in ::details-content,
+     which a rule on the children can't reach; without the transition it shows at once. (main.js
+     also opens them while printing, for browsers without ::details-content.) */
+  details::details-content { content-visibility: visible; block-size: auto; transition: none; }
+  /* Page breaks: small blocks stay whole, and a heading, a label or a fold's title stays with what
+     follows it. (A whole direction is not kept together: that would leave pages half empty.) */
+  .section-head, .stage-head, .facts > div, .xp, .pub, .stats, .loop, .direction-q { break-inside: avoid; }
+  .xp:has(.xp-body > div) { break-inside: auto; }   /* the startup entry, five projects long, is nearly a page */
+  .xp-body > div, .contact-grid { break-inside: avoid; }
+  h2, h3, h4, h5, .direction-meta, .direction-q summary { break-after: avoid; }
+  #publications .section-head { break-after: avoid; }
+  /* On paper the closing line sits closer to Fig. 4, so it ends the Directions pages instead of
+     heading the next page alone. */
+  .directions-close { margin-top: var(--s5); }
 }

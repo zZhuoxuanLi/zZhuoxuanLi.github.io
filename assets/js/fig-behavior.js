@@ -28,8 +28,10 @@
 
   /* ---------- The synthetic recording ---------- */
   var RATE = 2, SECONDS = 600, N = RATE * SECONDS, SHIFT = 180 * RATE;   // 2 samples per second; shift 3 min
+  // "Jump to" lands mid-behavior, or at `jump` where the middle doesn't show it: reaching's middle falls
+  // between its two reaches, with the arm at rest, so it lands on the first reach instead.
   var SEGMENTS = [
-    { label: 'resting', from: 0, to: 60 }, { label: 'reaching', from: 60, to: 85 }, { label: 'eating', from: 85, to: 180 },
+    { label: 'resting', from: 0, to: 60 }, { label: 'reaching', from: 60, to: 85, jump: 66 }, { label: 'eating', from: 85, to: 180 },
     { label: 'talking', from: 180, to: 300 }, { label: 'resting', from: 300, to: 330 }, { label: 'reading', from: 330, to: 420 },
     { label: 'talking', from: 420, to: 500 }, { label: 'resting', from: 500, to: 600 }
   ];
@@ -76,9 +78,14 @@
       case 'reaching':
         w = Math.max(Math.exp(-0.5 * Math.pow((t - 66) / 1.7, 2)), 0.85 * Math.exp(-0.5 * Math.pow((t - 78) / 1.5, 2)));
         return { R: lerp(REST_R, [0.98, -0.78], w), L: REST_L, prop: 'table' };
-      case 'eating':
-        w = 0.5 - 0.5 * Math.cos(2 * Math.PI * (t - 85) / 9);
+      case 'eating': {
+        // A bite every 14 s: the hand lifts to the mouth (1.8 s), stays there (2.5 s), comes back down
+        // (1.8 s) and rests at the tray. The rest matters: the tracker smooths speed over 4.5 s, which
+        // would average a hand that never paused into one flat stretch, hiding the lifts.
+        var c = (t - 85) % 14;
+        w = smoothstep((c - 1) / 1.8) - smoothstep((c - 5.3) / 1.8);
         return { R: lerp([0.2, -0.36], [0.06, -1.14], w), L: [-0.26, -0.36], prop: 'tray' };
+      }
       case 'talking': {
         var on = isSpeaking(t) ? 1 : 0.25;
         return {
@@ -186,17 +193,18 @@
     for (k = 0; k < N; k++) { sab += (a[k] - ma) * (b[k] - mb); saa += (a[k] - ma) * (a[k] - ma); sbb += (b[k] - mb) * (b[k] - mb); }
     return sab / Math.sqrt(saa * sbb);
   }
+  // r between the talking labels and the mean of the two speech channels.
+  function speechMatch(rows) { return corr(rows[2].map(function (v, k) { return (v + rows[3][k]) / 2; }), data.talking); }
   var VARIANTS = {};
   ['matched', 'shifted'].forEach(function (align) {
     var rows = align === 'matched' ? data.raw : data.raw.map(function (r) { return shifted(r, SHIFT); });
-    var fits = rows.map(regressOut);
-    var speechMean = rows[2].map(function (v, k) { return (v + rows[3][k]) / 2; });
+    var fits = rows.map(regressOut), removed = fits.map(function (f) { return f.resid; });
     VARIANTS[align] = {
       recorded: rows,
-      removed: fits.map(function (f) { return f.resid; }),
+      removed: removed,
       r2Hand: (fits[0].r2 + fits[1].r2) / 2,
       r2Speech: (fits[2].r2 + fits[3].r2) / 2,
-      match: corr(speechMean, data.talking)
+      match: { recorded: speechMatch(rows), removed: speechMatch(removed) }   // for the channels each mode draws
     };
   });
 
@@ -244,6 +252,22 @@
     ctx.closePath();
   }
 
+  // Places the labels that sit below the track: packed left to right so they never overlap, then pulled
+  // back from the right edge (into the gutter if need be) so none runs off the canvas. If the canvas is
+  // too narrow for all of them (the narrowest phones), a later span of a behavior already named to its
+  // left gives up its label, shortest span first.
+  function placeUnder(list, left, right) {
+    for (;;) {
+      var edge = -Infinity, k, drop = -1;
+      list.forEach(function (u) { u.left = Math.max(left, edge + 8, Math.min(right - u.ww, u.mid - u.ww / 2)); edge = u.left + u.ww; });
+      for (k = list.length - 1, edge = right + 8; k >= 0; k--) { list[k].left = Math.min(list[k].left, edge - 8 - list[k].ww); edge = list[k].left; }
+      if (!list.length || list[0].left >= 0) return list;
+      list.forEach(function (u, j) { if (u.repeat && (drop < 0 || u.span < list[drop].span)) drop = j; });
+      if (drop < 0) return list;
+      list.splice(drop, 1);
+    }
+  }
+
   function draw() {
     if (!view) return;
     var ctx = view.ctx, W = view.W, H = view.H, narrow = view.narrow, fs = narrow ? 12 : 13;
@@ -253,12 +277,19 @@
     ctx.fillRect(0, 0, W, H);
 
     // Track titles say what each stream stands in for: every value here is generated.
-    var tc = '#8a8a8a';
+    var tc = '#969696';
     K.text(ctx, narrow ? 'Behavior labels, stand-in' : 'Behavior labels · stand-in for a vision–language model', 0, L.labels.y - 8, { color: tc, size: fs });
     K.text(ctx, narrow ? 'Wrist speed, generated pose' : 'Wrist speed · from the generated pose', 0, L.speed.y - 8, { color: tc, size: fs });
     K.text(ctx, narrow ? 'Speech envelope' : 'Speech · synthetic sound envelope', 0, L.audio.y - 8, { color: tc, size: fs });
-    var suffix = (state.signal === 'removed' ? ' · movement removed' : '') + (state.align === 'shifted' ? ' · shifted 3 min' : '');
-    K.text(ctx, (narrow ? 'Neural, 6 synthetic' : 'Neural activity · 6 synthetic channels') + suffix, 0, L.neural.y - 8, { color: state.align === 'shifted' || state.signal === 'removed' ? '#ababab' : tc, size: fs });
+    // The neural title notes the controls that are on; where the canvas is too narrow for the whole
+    // title, the name shortens first, then the notes, so the notes stay on screen.
+    var removed = state.signal === 'removed', moved = state.align === 'shifted';
+    var suffix = (removed ? ' · movement removed' : '') + (moved ? ' · shifted 3 min' : '');
+    var titles = [(narrow ? 'Neural, 6 synthetic' : 'Neural activity · 6 synthetic channels') + suffix, 'Neural, 6 synthetic' + suffix,
+      'Neural' + suffix, 'Neural' + (removed ? ' · removed' : '') + (moved ? ' · shifted' : '')];
+    ctx.font = '400 ' + fs + 'px ' + K.mono;
+    var neuralTitle = titles.filter(function (s) { return ctx.measureText(s).width <= W; })[0] || titles[titles.length - 1];
+    K.text(ctx, neuralTitle, 0, L.neural.y - 8, { color: moved || removed ? '#ababab' : tc, size: fs });
 
     // Behavior labels as spans; the one under the cursor is outlined in yellow. A span too narrow
     // for its word takes a short form, or else the word sits just below it on a short tick.
@@ -269,7 +300,7 @@
     SEGMENTS.forEach(function (s) {
       if (ctx.measureText(s.label).width > TX(s.to) - TX(s.from) - 10) useShort[s.label] = true;
     });
-    var underRight = -Infinity;   // labels below the track are packed left to right so they never overlap
+    var under = [], seen = {};   // labels below the track are placed once all of them are known
     SEGMENTS.forEach(function (s, i) {
       var x0 = TX(s.from) + 1, x1 = TX(s.to) - 1, box = L.labels, mid = (x0 + x1) / 2, room = x1 - x0 - 8;
       ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
@@ -283,13 +314,14 @@
       if (ctx.measureText(name).width <= room) {
         K.text(ctx, name, mid, box.y + box.h / 2 + 4, { color: color, align: 'center', size: fs });
       } else {
-        var word = SHORT[s.label], ww = ctx.measureText(word).width;
-        var left = Math.max(box.x, underRight + 8, Math.min(box.x + box.w - ww, mid - ww / 2));
-        underRight = left + ww;
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-        ctx.fillRect(Math.round(mid), box.y + box.h, 1, 4);
-        K.text(ctx, word, left, box.y + box.h + 15, { color: color, size: fs });
+        under.push({ repeat: !!seen[s.label], span: s.to - s.from, word: SHORT[s.label], ww: ctx.measureText(SHORT[s.label]).width, mid: mid, color: color });
       }
+      seen[s.label] = true;
+    });
+    placeUnder(under, L.labels.x, L.labels.x + L.labels.w).forEach(function (u) {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+      ctx.fillRect(Math.round(u.mid), L.labels.y + L.labels.h, 1, 4);
+      K.text(ctx, u.word, u.left, L.labels.y + L.labels.h + 15, { color: u.color, size: fs });
     });
 
     // Wrist speed and the speech envelope as quiet grays: measurements, not activity.
@@ -322,9 +354,9 @@
       var x = TX(m * 60);
       ctx.fillStyle = 'rgba(237, 237, 237, 0.4)';
       ctx.fillRect(Math.round(x), L.axis, 1, m % every ? 3 : 5);
-      if (m % every === 0 && m < 10) K.text(ctx, m + ':00', x, L.axis + 19, { color: '#8a8a8a', align: m === 0 ? 'left' : 'center', size: fs });
+      if (m % every === 0 && m < 10) K.text(ctx, m + ':00', x, L.axis + 19, { color: '#969696', align: m === 0 ? 'left' : 'center', size: fs });
     }
-    K.text(ctx, '10:00', TX(600), L.axis + 19, { color: '#8a8a8a', align: 'right', size: fs });
+    K.text(ctx, '10:00', TX(600), L.axis + 19, { color: '#969696', align: 'right', size: fs });
     ctx.fillStyle = '#ffd23f';
     ctx.fillRect(cx - 1, L.axis - 1, 3, 8);
 
@@ -356,7 +388,7 @@
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
     var b0 = P([-1.05, 0]), b1 = P([1.05, 0.2]);
     ctx.strokeRect(Math.round(b0[0]) + 0.5, Math.round(b0[1]) + 0.5, Math.round(b1[0] - b0[0]), Math.round(b1[1] - b0[1]));
-    K.text(ctx, 'bed', b1[0] + 6, b1[1] - 2, { color: '#8a8a8a', size: fs });
+    K.text(ctx, 'bed', b1[0] + 6, b1[1] - 2, { color: '#969696', size: fs });
     var props = {
       tray: { a: [-0.52, -0.37], b: [0.52, -0.31], label: [0.6, -0.31] },
       table: { a: [0.86, -0.72], b: [1.34, -0.64], label: [0.86, -0.92], cup: [1.06, -0.86, 0.12, 0.14] },
@@ -367,7 +399,10 @@
       var pa = P(prop.a), pb = P(prop.b), pl = P(prop.label);
       ctx.strokeRect(Math.round(pa[0]) + 0.5, Math.round(pa[1]) + 0.5, Math.round(pb[0] - pa[0]), Math.round(pb[1] - pa[1]));
       if (prop.cup) { var c0 = P(prop.cup); ctx.strokeRect(Math.round(c0[0]) + 0.5, Math.round(c0[1]) + 0.5, Math.round(prop.cup[2] * s), Math.round(prop.cup[3] * s)); }
-      K.text(ctx, p.prop === 'table' ? 'table, cup' : p.prop, pl[0], pl[1] - 4, { color: '#8a8a8a', size: fs });
+      // The label keeps inside the canvas: on narrow phones "table, cup" would run past the right edge.
+      var propLabel = p.prop === 'table' ? 'table, cup' : p.prop;
+      ctx.font = '400 ' + fs + 'px ' + K.mono;
+      K.text(ctx, propLabel, Math.min(pl[0], W - 2 - ctx.measureText(propLabel).width), pl[1] - 4, { color: '#969696', size: fs });
     }
 
     // Keypoints and the skeleton a pose estimator returns: face points, shoulders, elbows, wrists, hips.
@@ -415,7 +450,7 @@
     ctx.strokeStyle = '#000';
     ctx.stroke();
 
-    K.text(ctx, 'Generated keypoints, not video', 0, 14, { color: '#8a8a8a', size: fs });
+    K.text(ctx, 'Generated keypoints, not video', 0, 14, { color: '#969696', size: fs });
     ctx.fillStyle = '#ffd23f';
     ctx.beginPath();
     ctx.arc(5, H - 9, 4, 0, Math.PI * 2);
@@ -435,7 +470,8 @@
   }
   function update(speak) {
     var t = state.i / RATE, label = SEGMENTS[segmentAt(t + 0.25)].label, variant = VARIANTS[state.align];
-    var match = 'r = ' + variant.match.toFixed(2);
+    // r describes the speech channels drawn in this mode; the variance pair describes the recorded data.
+    var match = 'r = ' + variant.match[state.signal].toFixed(2);
     var explained = Math.round(100 * variant.r2Hand) + '% / ' + Math.round(100 * variant.r2Speech) + '%';
     if (out.time) out.time.textContent = clock(state.i);
     if (out.label) out.label.textContent = label;
@@ -472,7 +508,7 @@
     button.addEventListener('click', function () {
       var name = button.getAttribute('data-segment');
       var s = SEGMENTS.filter(function (x) { return x.label === name; })[0];
-      var target = Math.round(((s.from + s.to) / 2) * RATE);
+      var target = Math.round((s.jump || (s.from + s.to) / 2) * RATE);
       cancelGlide();
       cancelGlide = K.glide(state.i, target, Math.min(900, 300 + Math.abs(target - state.i) * 0.6), setIndex);
     });
@@ -494,11 +530,35 @@
     return ((event.clientX - rect.left - L.labels.x) / L.labels.w) * N;
   }, function (i) { cancelGlide(); setIndex(i); });
 
+  // A browser can bring back the time and options a visitor chose (Back without the
+  // back/forward cache, a restored session) without firing input or change events.
+  // Applies what the controls show; returns whether anything changed.
+  function applyControls() {
+    var changed = false;
+    function adopt(inputs, key) {
+      inputs.forEach(function (input) {
+        if (input.checked && input.value !== state[key]) { state[key] = input.value; changed = true; }
+      });
+    }
+    adopt(signalInputs, 'signal');
+    adopt(alignInputs, 'align');
+    if (slider) {
+      var k = Math.max(0, Math.min(N - 1, Math.round(Number(slider.value))));
+      if (k !== state.i) { state.i = k; changed = true; }
+    }
+    return changed;
+  }
+
   /* ---------- Setup ---------- */
   K.ramp(fig.querySelector('[data-ramp="activity"]'), 'activity');
+  applyControls();
   signalInputs.forEach(function (input) { input.checked = input.value === state.signal; });
   alignInputs.forEach(function (input) { input.checked = input.value === state.align; });
   if (layout()) draw();
   update(false);
   K.onResize(fig.querySelector('.views'), function () { if (layout()) draw(); });
+  // Chromium restores the controls after load, just before pageshow.
+  window.addEventListener('pageshow', function () {
+    if (applyControls()) { cancelGlide(); update(false); requestRender(); }
+  });
 })();

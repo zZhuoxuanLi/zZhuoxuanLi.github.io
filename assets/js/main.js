@@ -1,7 +1,7 @@
 /* Site behaviour: theme toggle, mobile menu, current-section link,
-   copy-email button, CV availability, and deep links that open their target.
-   No dependencies. Content lives in index.html; nothing here needs editing
-   for routine updates. */
+   copy-email button, CV availability, deep links that open their target,
+   and printing with collapsed sections open. No dependencies. Content lives
+   in index.html; nothing here needs editing for routine updates. */
 (function () {
   'use strict';
 
@@ -62,6 +62,10 @@
   }
   if (nav) {
     nav.addEventListener('click', function (event) { if (event.target.closest('a')) setMenu(false); });
+    // Tabbing out of the open menu closes it, so it never covers what takes the focus next.
+    nav.addEventListener('focusout', function (event) {
+      if (nav.hasAttribute('data-open') && event.relatedTarget && !nav.contains(event.relatedTarget)) setMenu(false);
+    });
   }
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape' && navToggle && navToggle.getAttribute('aria-expanded') === 'true') {
@@ -74,7 +78,7 @@
   });
 
   /* ---------- Current section in the nav ---------- */
-  var sectionToLink = { research: '#research', next: '#research', publications: '#publications', about: '#about', contact: '#contact' };
+  var sectionToLink = { research: '#research', next: '#next', publications: '#publications', about: '#about', contact: '#contact' };
   var navLinks = Array.prototype.slice.call(document.querySelectorAll('.nav-list a[href^="#"]'));
 
   function markCurrent(id) {
@@ -88,31 +92,101 @@
   if ('IntersectionObserver' in window) {
     var visible = {};
     var watched = Object.keys(sectionToLink).map(function (id) { return document.getElementById(id); }).filter(Boolean);
-    var observer = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) { visible[entry.target.id] = entry.isIntersecting; });
+    var lastSection = watched[watched.length - 1];
+    var shown;
+    var update = function () {
       var current = null;
       watched.forEach(function (section) { if (visible[section.id]) current = section.id; });
-      markCurrent(current);
+      // The band below sits 40-45% down the window. On a tall window the last section (short,
+      // with only the footer after it) never reaches it, so at the bottom of the page it is current.
+      if (lastSection && window.innerHeight + window.pageYOffset >= doc.scrollHeight - 2) current = lastSection.id;
+      if (current !== shown) { shown = current; markCurrent(current); }
+    };
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) { visible[entry.target.id] = entry.isIntersecting; });
+      update();
     }, { rootMargin: '-40% 0px -55% 0px' });
     watched.forEach(function (section) { observer.observe(section); });
+    window.addEventListener('scroll', update, { passive: true });   // reaching the bottom may cross no band edge
   }
 
   /* ---------- Deep links open what they point at ---------- */
+  function targetOf(hash) {
+    if (!hash || hash.length < 2) return null;
+    var id = hash.slice(1);
+    // A malformed escape (a typed or mangled "#%") would throw and stop everything set up below.
+    try { id = decodeURIComponent(id); } catch (e) { /* look it up as written */ }
+    return document.getElementById(id);
+  }
+
+  /* Arrival: what a link lands on is ringed for a moment (.is-target in styles.css), so the eye
+     finds it among its neighbours. A project rings its title block and a figure its title row,
+     which fit on screen where the whole would not; an empty alias anchor rings the entry that holds
+     it. A section, the main area or a page-wide wrapper gets none: its heading says where you are. */
+  function arrivalMark(target) {
+    if (target.matches('body, main, section, .wrap')) return null;
+    if (target.matches('.project')) return target.querySelector('.project-head');
+    if (target.matches('.stage')) return target.querySelector('.stage-head');
+    if (!target.children.length && !target.textContent.trim()) return target.parentElement;
+    return target;
+  }
+  /* The ring starts once the page is still, with the mark on screen. The smooth scroll to a far
+     entry, or the browser's own scroll to a deep link after the page loads, can take well over a
+     second, and a ring started with the click would have faded before the mark arrived. */
+  var ringed = null, waiting = null, ringTimer = 0, giveUp = 0;
+  function ring(target) {
+    var mark = arrivalMark(target);
+    if (!mark) return;
+    clearTimeout(ringTimer);
+    if (ringed) { ringed.classList.remove('is-target'); ringed = null; }
+    waiting = mark;
+    giveUp = Date.now() + 3000;   // if the mark never comes on screen, ring it anyway after 3s
+    ringTimer = setTimeout(startRing, 150);
+  }
+  function startRing() {
+    var mark = waiting, box = mark.getBoundingClientRect();
+    var offscreen = box.bottom < 0 || box.top > window.innerHeight;
+    if (offscreen && Date.now() < giveUp) { ringTimer = setTimeout(startRing, 150); return; }
+    waiting = null;
+    mark.classList.add('is-target');
+    ringed = mark;
+    // Off once it has run (2s), so no ring stays behind: in forced colours it is a still outline.
+    ringTimer = setTimeout(function () { mark.classList.remove('is-target'); ringed = null; }, 2100);
+  }
+  // Each step of a scroll puts a waiting ring off a little, so it starts when the page is still.
+  window.addEventListener('scroll', function () {
+    if (!waiting) return;
+    clearTimeout(ringTimer);
+    ringTimer = setTimeout(startRing, 150);
+  }, { passive: true });
+
   function revealTarget(hash, flash) {
-    if (!hash || hash.length < 2) return;
-    var target = document.getElementById(decodeURIComponent(hash.slice(1)));
+    var target = targetOf(hash);
     if (!target) return;
     var details = target.matches('details') ? [target] : [];
-    var inner = target.querySelector(':scope details.xp-more');
+    // Only an experience entry opens its own panel. A section that holds entries (#about, or #main
+    // from the skip link) would otherwise open the first panel inside it.
+    var inner = target.classList.contains('xp') ? target.querySelector(':scope details.xp-more') : null;
     if (inner) details.push(inner);
     var parent = target.closest('details');
+    var shut = parent && !parent.open;
     if (parent) details.push(parent);
-    details.forEach(function (d) { d.open = true; });
-    if (flash && target.classList.contains('xp')) {   // a colour wash, shortened by the reduced-motion rule
-      target.classList.remove('is-target');
-      void target.offsetWidth; // restart the highlight
-      target.classList.add('is-target');
+    details.forEach(function (d) {
+      if (d.open) return;
+      // At once, not unfolding (.is-instant in styles.css): for the first moment of the unfolding,
+      // a block inside a panel has no place on the page, so a scroll to it would go nowhere.
+      d.classList.add('is-instant');
+      d.open = true;
+      void d.offsetHeight;   // take the open state now, without the transition
+      window.requestAnimationFrame(function () { d.classList.remove('is-instant'); });
+    });
+    // Arriving from another page at a block inside a shut panel (#startup-errp), the browser's own
+    // scroll ran while the panel was shut, so the block is brought into view here. (A click opens
+    // the panel before the browser scrolls, so it needs nothing more.)
+    if (shut && !flash) {
+      try { target.scrollIntoView({ block: 'start', behavior: 'instant' }); } catch (e) { target.scrollIntoView(true); }
     }
+    if (flash) ring(target);
   }
   document.addEventListener('click', function (event) {
     var link = event.target.closest('a[href^="#"]');
@@ -120,6 +194,46 @@
   });
   window.addEventListener('hashchange', function () { revealTarget(window.location.hash, true); });
   revealTarget(window.location.hash, false);
+  // A deep link from elsewhere rings its target too, once the page has loaded and is resting on it.
+  function ringArrival() { var target = targetOf(window.location.hash); if (target) ring(target); }
+  if (document.readyState === 'complete') ringArrival();
+  else window.addEventListener('load', ringArrival);
+  // Scrolling turns smooth (html.is-ready in styles.css) only in the frame after load, once the
+  // browser's own scroll to a deep link has landed, so arriving on one does not glide down the page.
+  function allowSmoothScroll() { window.requestAnimationFrame(function () { doc.classList.add('is-ready'); }); }
+  if (document.readyState === 'complete') allowSmoothScroll();
+  else window.addEventListener('load', allowSmoothScroll);
+
+  /* ---------- Printing ----------
+     Collapsed sections print open, then close again. (The print styles also show their content
+     where the browser allows it, e.g. with scripts off; this covers the other browsers.)
+     Meanwhile they open and close at once (is-printing in styles.css), and the reader is put back
+     where they were: the browser keeps the scroll offset while the panels above it change. */
+  var openedForPrint = [];
+  var scrollBeforePrint = null;
+  window.addEventListener('beforeprint', function () {
+    scrollBeforePrint = window.pageYOffset;
+    doc.classList.add('is-printing');
+    Array.prototype.forEach.call(document.querySelectorAll('details:not([open])'), function (d) {
+      d.open = true;
+      openedForPrint.push(d);
+    });
+  });
+  window.addEventListener('afterprint', function () {
+    openedForPrint.forEach(function (d) { d.open = false; });
+    openedForPrint = [];
+    void doc.offsetHeight;   // lay out the closed panels while is-printing still holds their animation off
+    // signals.js redraws its chart for the screen in its own afterprint listener, which runs after
+    // this one and changes the chart's height, so the reader is put back once every listener has run.
+    var y = scrollBeforePrint;
+    scrollBeforePrint = null;
+    window.requestAnimationFrame(function () {
+      if (y !== null) {
+        try { window.scrollTo({ top: y, behavior: 'instant' }); } catch (e) { window.scrollTo(0, y); }
+      }
+      doc.classList.remove('is-printing');
+    });
+  });
 
   /* ---------- Copy email ---------- */
   var copyStatus = document.querySelector('[data-copy-status]');

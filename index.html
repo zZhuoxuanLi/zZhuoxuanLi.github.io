@@ -4,29 +4,30 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Zhuoxuan Li</title>
-<meta name="description" content="Zhuoxuan Li is a clinical research coordinator in the Chang Lab at UCSF, working on speech brain–computer interfaces, ECoG signal processing and anatomically informed source reconstruction.">
+<meta name="description" content="Zhuoxuan Li, clinical research coordinator in the Chang Lab at UCSF: brain–computer interfaces for speech and movement, and ECoG source reconstruction.">
 <meta name="author" content="Zhuoxuan Li">
 
-<!-- Social sharing preview. Link previews need full addresses: tools/make-publish.ps1 -SiteUrl
-     writes them into the uploaded copy (with og:url and a canonical link), so this file keeps
-     relative paths that also work locally. -->
+<!-- Social sharing preview. Link previews need full addresses, so og:url, the canonical link,
+     both preview images and the url and image in the structured data below name
+     https://zzhuoxuanli.github.io/ in full; change them if the site moves. Elsewhere the page links
+     its own files by relative paths. -->
 <meta property="og:type" content="profile">
 <meta property="og:url" content="https://zzhuoxuanli.github.io/">
 <link rel="canonical" href="https://zzhuoxuanli.github.io/">
 <meta property="og:title" content="Zhuoxuan Li">
-<meta property="og:description" content="Speech brain–computer interfaces, ECoG and anatomically informed source reconstruction. Clinical research coordinator, Chang Lab, UCSF.">
+<meta property="og:description" content="Brain–computer interfaces for speech and movement: reading the brain, and one day writing to it. Clinical research coordinator, Chang Lab, UCSF.">
 <meta property="og:image" content="https://zzhuoxuanli.github.io/assets/img/og-image.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Zhuoxuan Li: speech brain–computer interfaces and ECoG research">
+<meta property="og:image:alt" content="Zhuoxuan Li: brain–computer interfaces for speech and movement">
 <meta property="profile:first_name" content="Zhuoxuan">
 <meta property="profile:last_name" content="Li">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Zhuoxuan Li">
-<meta name="twitter:description" content="Speech brain–computer interfaces, ECoG and anatomically informed source reconstruction. Clinical research coordinator, Chang Lab, UCSF.">
+<meta name="twitter:description" content="Brain–computer interfaces for speech and movement: reading the brain, and one day writing to it. Clinical research coordinator, Chang Lab, UCSF.">
 <meta name="twitter:image" content="https://zzhuoxuanli.github.io/assets/img/og-image.jpg">
 
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#1d1e1f">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
 
@@ -35,17 +36,22 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400..700&family=Atkinson+Hyperlegible+Next:ital,wght@0,400..800;1,400&display=swap">
 <link rel="stylesheet" href="assets/css/styles.css">
 <noscript>
-  <!-- Without JavaScript the slice shows a still image (tools/slice-still.html; not loaded otherwise),
+  <!-- Without JavaScript the slice shows a still image (assets/img/slice-still.jpg; not loaded otherwise),
        and Fig. 1 keeps its text: the default readouts, a note and the caption. -->
   <style>
     .viewer-canvas { background: #000 url("assets/img/slice-still.jpg") 50% 0 / auto 100% no-repeat; }
+    /* Phones see a quarter of the wide image: frame the deep fold and its one-line label, which runs
+       right of the centre, rather than the centre itself. */
+    @media (max-width: 640px) { .viewer-canvas { background-position: 60% 0; } }
     .status-hint { visibility: hidden; }
     .views, .controls, .stage-inner > .stage-intro { display: none; }
   </style>
 </noscript>
 
 <script>
-  /* Apply a saved light/dark choice before the first paint. */
+  /* Before the first paint: mark that scripts run (without it, styles.css hides the buttons that
+     need them and shows the phone menu open), and apply a saved light/dark choice. */
+  document.documentElement.classList.add('js');
   try { var t = localStorage.getItem('theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
 </script>
 <script type="application/ld+json">
@@ -53,11 +59,13 @@
   "@context": "https://schema.org",
   "@type": "Person",
   "name": "Zhuoxuan Li",
+  "url": "https://zzhuoxuanli.github.io/",
+  "image": "https://zzhuoxuanli.github.io/assets/img/portrait-556.jpg",
   "jobTitle": "Clinical Research Coordinator",
   "worksFor": { "@type": "Organization", "name": "University of California, San Francisco" },
   "alumniOf": { "@type": "CollegeOrUniversity", "name": "Johns Hopkins University" },
   "email": "mailto:Zhuoxuan.Li@ucsf.edu",
-  "knowsAbout": ["Brain–computer interfaces", "Electrocorticography", "Neural decoding", "Source reconstruction"]
+  "knowsAbout": ["Brain–computer interfaces", "Speech decoding", "Movement decoding", "Electrocorticography", "Source reconstruction"]
 }
 </script>
 </head>
@@ -80,6 +88,7 @@
       </button>
       <ul class="nav-list" id="nav-list">
         <li><a href="#research">Research</a></li>
+        <li><a href="#next">Directions</a></li>
         <li><a href="#publications">Publications</a></li>
         <li><a href="#about">About</a></li>
         <li><a href="#contact">Contact</a></li>
@@ -104,7 +113,7 @@
       <div class="hero-intro">
         <h1 id="hero-name">Zhuoxuan Li</h1>
         <p class="hero-role">Clinical Research Coordinator, Chang Lab, University of California, San Francisco</p>
-        <p class="hero-lede">I work on speech brain–computer interfaces, which decode what a person is trying to say from electrodes on the surface of the brain. My current research asks what those electrodes miss, and whether anatomically informed models can recover activity hidden deep in the brain’s folds.</p>
+        <p class="hero-lede">I work on brain–computer interfaces for speech and movement: reading what a person is trying to say or do from electrodes on the brain and, one&nbsp;day, writing information back. My current research asks what those electrodes miss in the brain’s folds, and whether anatomical models can recover it.</p>
         <p class="hero-status">B.S. in Biomedical Engineering and Computer Science, Johns Hopkins University, 2026.</p>
         <div class="hero-actions">
           <a class="btn btn-primary" href="#research">Explore the research</a>
@@ -117,9 +126,9 @@
         <div>
           <h2>Current work</h2>
           <ul>
-            <li><a href="#project-sources">Recovering activity from the brain’s folds</a><span class="brief-meta">Building anatomical forward models and Bayesian inverse methods for electrocorticography (ECoG). Since July 2026.</span></li>
-            <li><a href="#project-speech">Decoding attempted speech from ECoG</a><span class="brief-meta">Co-developed the decoding framework for a clinical-trial participant. Collaboration ongoing.</span></li>
-            <li><a href="#project-behavior">Mapping brain activity to natural behavior</a><span class="brief-meta">Building a pipeline that pairs intracranial EEG with video, audio and language. Since July 2026.</span></li>
+            <li><a href="#project-sources">Recovering activity from the brain’s folds</a><span class="brief-meta">Building anatomical forward models and Bayesian inverse methods for electrocorticography (ECoG). <span class="nowrap">Since July 2026.</span></span></li>
+            <li><a href="#project-speech">Decoding attempted speech from ECoG</a><span class="brief-meta">Co-developed the decoding framework for a <span class="nowrap">clinical-trial</span> participant. Collaboration ongoing.</span></li>
+            <li><a href="#project-behavior">Mapping brain activity to natural behavior</a><span class="brief-meta">Building a framework that pairs intracranial EEG with video, audio and language. <span class="nowrap">Since July 2026.</span></span></li>
           </ul>
         </div>
         <div>
@@ -134,24 +143,30 @@
 
     <!-- Synthetic slice: the same toy model as the figure below, at overview scale. -->
     <div class="viewer" data-hero-viewer>
-      <canvas class="viewer-canvas" data-hero-canvas role="img" aria-label="Synthetic coronal slice through cortex with three folds and a strip of electrodes resting on the surface. A source moves from the surface into a fold, and the electrodes above it lose most of its signal."></canvas>
+      <canvas class="viewer-canvas" data-hero-canvas role="img" aria-labelledby="hero-slice-desc"></canvas>
       <p class="viewer-label"><span class="viewer-plane"><strong>Coronal view</strong> · </span>Synthetic schematic<span class="viewer-extra">, not patient data</span></p>
+      <!-- Read only through the canvas. Without the script the first names the picture; the script
+           makes the slice a slider for keyboard probing, and both become its description. (No fold
+           count: how many folds show depends on the screen's width.) -->
+      <p id="hero-slice-desc" hidden>Synthetic coronal slice through folded cortex, with a strip of electrodes resting on the surface. A source moves from the surface into a fold, and the electrodes above it lose most of its signal.</p>
+      <p id="hero-slice-keys" hidden>Left and right arrow keys move the source along the cortex; Home and End move it to either edge of the slice.</p>
     </div>
     <div class="viewer-status">
       <div class="wrap status-inner">
-        <p class="status-hint" data-hero-hint>Move across the cortex to probe it.</p>
+        <p class="status-hint" data-hero-hint>Move across the cortex.</p>
         <dl class="readout">
           <div><dt>Location</dt><dd data-hero-out="region">Sulcal wall</dd></div>
           <div><dt>Depth below electrodes</dt><dd data-hero-out="depth">7.5&nbsp;mm</dd></div>
-          <div><dt>Signal at the electrodes</dt><dd data-hero-out="signal">2.1% of a crown source</dd></div>
+          <div><dt>Signal at electrodes</dt><dd data-hero-out="signal">2.1% of a crown source</dd></div>
         </dl>
+        <p class="visually-hidden" aria-live="polite" data-hero-live></p>
       </div>
     </div>
   </section>
 
   <!-- =====================================================================
        SELECTED RESEARCH
-       Each project: title, state, formal title, four facts, next question, details.
+       Each project: title, state, formal title, four facts, where this leads, details.
        ===================================================================== -->
   <section class="section" id="research" aria-labelledby="research-title">
     <div class="wrap">
@@ -190,9 +205,10 @@
       </div>
 
       <!-- Interactive figure (assets/js/fig-sources.js) -->
-      <figure class="stage" data-fig="sources" aria-labelledby="fig-title">
+      <figure class="stage" data-fig="sources" id="fig-sources" aria-labelledby="fig1-num fig-title">
         <div class="wrap stage-inner">
           <div class="stage-head">
+            <p class="stage-num" id="fig1-num">Fig. 1</p>
             <h4 id="fig-title">What the electrode array records</h4>
             <p class="stage-tag">Toy model, synthetic data</p>
           </div>
@@ -207,10 +223,10 @@
             </div>
             <div class="view">
               <p class="view-title"><strong>Array</strong> seen from above</p>
-              <canvas class="array-canvas" data-fig-array role="img" aria-label="Top-down map of a nine by five grid of electrode contacts over the fold, coloured by the potential each contact records: warm for positive, cool for negative."></canvas>
+              <canvas class="array-canvas" data-fig-array role="img" aria-label="Top-down map of a nine by five grid of electrode contacts over the fold, colored by the potential each contact records: warm for positive, cool for negative."></canvas>
               <div class="view-key">
                 <span class="cbar" aria-hidden="true"><span>−</span><span class="cbar-ramp" data-colorbar></span><span>+</span></span>
-                <p class="view-note" data-out="gain">Colours scaled to show the pattern</p>
+                <p class="view-note" data-out="gain">Colors scaled ×48 to show the pattern</p>
               </div>
             </div>
           </div>
@@ -218,7 +234,7 @@
           <div class="controls">
             <div class="control">
               <label class="control-label" for="fig1-position">Source position along the cortex</label>
-              <input class="range" id="fig1-position" type="range" min="0" max="1000" step="1" value="500" data-fig-slider>
+              <input class="range" id="fig1-position" type="range" min="0" max="1000" step="1" value="318" data-fig-slider>
               <div class="jumps" role="group" aria-label="Jump to a location">
                 <span aria-hidden="true">Jump to</span>
                 <button type="button" class="chip-btn" data-preset="crown">gyral crown</button>
@@ -249,7 +265,7 @@
             </div>
             <dl class="stats">
               <div><dt>Location</dt><dd data-out="region">Sulcal wall</dd></div>
-              <div><dt>Depth below the electrodes</dt><dd data-out="depth">7.5&nbsp;mm</dd></div>
+              <div><dt>Depth below electrodes</dt><dd data-out="depth">7.5&nbsp;mm</dd></div>
               <div><dt>Orientation</dt><dd data-out="orient">sideways, 90°</dd></div>
               <div><dt>Peak signal, versus the same source on a crown</dt><dd data-out="peak">2.1%</dd></div>
               <div data-out="error-row" hidden><dt>Estimate peak, distance from the true source</dt><dd data-out="error"></dd></div>
@@ -257,14 +273,14 @@
             <p class="visually-hidden" aria-live="polite" data-out="live"></p>
           </div>
           <noscript><p class="stage-intro">The interactive figure needs JavaScript; the text above describes its default view.</p></noscript>
-          <figcaption class="stage-caption">Toy model: one point current source perpendicular to the cortex, in a uniform conductor, recorded by contacts 4&nbsp;mm apart, with no noise. “Crown source” means the same source on a crown directly beneath a contact. The figure illustrates the problem my project works on; it is not my project’s model, data or results.</figcaption>
+          <p class="stage-caption">Toy model: one point current dipole perpendicular to the cortex, in a uniform conductor, recorded by contacts 4&nbsp;mm apart, with no noise. “Crown source” means the same source on a crown directly beneath a contact. The figure illustrates the problem my project works on; it is not my project’s model, data or results.</p>
         </div>
       </figure>
 
       <div class="wrap project-block">
-        <p class="next-line">Next question: <a href="#next-anatomy">Can anatomy make surface recordings more informative?</a></p>
+        <p class="next-line"><span class="next-key">Where this leads<span class="visually-hidden">:</span></span> <a href="#next-read">reading more from the electrodes we already have</a>, and, through the same head models, <a href="#next-write">writing back to the brain</a>.</p>
         <details class="more">
-          <summary><span>Evaluation, groundwork and supervisors</span><span class="pm" aria-hidden="true"></span></summary>
+          <summary><span>Evaluation, groundwork, supervisors and tools</span><span class="pm" aria-hidden="true"></span></summary>
           <div class="more-body">
             <div><h4>Evaluation</h4><p>Controlled simulations, cross-validation and held-out-electrode prediction, measuring source-localization accuracy, signal reconstruction, and robustness to noise and to errors in the head model.</p></div>
             <div><h4>Groundwork</h4><p>In 2025, at <a href="#exp-startup">a neurotechnology startup</a>, I built a modular ECoG source-modeling prototype (MRI segmentation, CT/MRI registration, finite-element meshing, cortical source spaces and standard coordinate transforms). I generated synthetic recordings with gamma bursts, event-related synchronization and desynchronization, traveling waves and nuisance sources, and trained STTU-Net, a convolutional–Transformer model with spectral and graph regularization, to reconstruct cortical signals. Interactive 3D diagnostics check electrode–anatomy alignment and forward and inverse outputs.</p></div>
@@ -304,21 +320,22 @@
       </div>
 
       <!-- Interactive figure (assets/js/fig-speech.js) -->
-      <figure class="stage" data-fig="speech" aria-labelledby="fig2-title">
+      <figure class="stage" data-fig="speech" aria-labelledby="fig2-num fig2-title">
         <div class="wrap stage-inner">
           <div class="stage-head">
+            <p class="stage-num" id="fig2-num">Fig. 2</p>
             <h4 id="fig2-title">From brain activity to a sentence</h4>
             <p class="stage-tag">Synthetic example, not participant data</p>
           </div>
           <p class="stage-intro">Move through one attempt to say a sentence. A decoder turns neural features into phoneme probabilities; language models turn the phonemes into words.</p>
           <div class="views">
-            <div class="view">
+            <div class="view track-view">
               <p class="view-title"><strong>Attempt</strong> over 2.4 seconds</p>
               <canvas class="track-canvas speech-canvas" data-speech-canvas role="img" aria-label="One synthetic attempt to say “I need some water”, as three stacked tracks over 2.4 seconds: neural features on 16 electrodes grouped by lips, tongue tip, tongue body and larynx; the decoder’s phoneme probabilities in 20 millisecond steps; and the decoded phonemes grouped into words."></canvas>
               <div class="view-key">
                 <div class="key-pair">
                   <span class="cbar" aria-hidden="true"><span>−</span><span class="cbar-ramp" data-ramp="activity"></span><span>+</span></span>
-                  <p class="view-note">Neural features, <span class="nowrap">z-score</span>, full colour at ±3.4</p>
+                  <p class="view-note">Neural features, <span class="nowrap">z-score</span>, full color at ±3.4</p>
                 </div>
                 <div class="key-pair">
                   <span class="cbar" aria-hidden="true"><span>0</span><span class="cbar-ramp" data-ramp="gray"></span><span>1</span></span>
@@ -377,12 +394,12 @@
             <p class="visually-hidden" aria-live="polite" data-out="live"></p>
           </div>
           <noscript><p class="stage-intro">The interactive figure needs JavaScript; the text above describes its default view.</p></noscript>
-          <figcaption class="stage-caption">Synthetic example: invented neural features and decoder probabilities for one made-up attempt at “I need some water”, with illustrative language-model outputs. “Blank” is the decoder’s “no new sound” output. Not the participant’s data, the team’s models or its results. The real system turns ECoG features into phoneme probabilities with neural networks trained with connectionist temporal classification (CTC), then searches candidate sentences with n-gram and large language models.</figcaption>
+          <p class="stage-caption">Synthetic example: invented neural features and decoder probabilities for one made-up attempt at “I need some water”, with illustrative <span class="nowrap">language-model</span> outputs. “Blank” is the decoder’s “no new sound” output. Not the participant’s data, the team’s models or its results. The real system turns ECoG features into phoneme probabilities with neural networks trained with connectionist temporal classification (CTC), then searches candidate sentences with n-gram and large language models.</p>
         </div>
       </figure>
 
       <div class="wrap project-block">
-        <p class="next-line">Next question: <a href="#next-signal">Which parts of the ECoG signal carry speech?</a></p>
+        <p class="next-line"><span class="next-key">Where this leads<span class="visually-hidden">:</span></span> <a href="#next-decode">decoders for speech and movement in everyday use</a>, and <a href="#next-loop">decoders that catch their own mistakes</a>.</p>
         <details class="more">
           <summary><span>Features, decoders, language models and collaborators</span><span class="pm" aria-hidden="true"></span></summary>
           <div class="more-body">
@@ -424,21 +441,22 @@
       </div>
 
       <!-- Interactive figure (assets/js/fig-behavior.js) -->
-      <figure class="stage" data-fig="behavior" aria-labelledby="fig3-title">
+      <figure class="stage" data-fig="behavior" aria-labelledby="fig3-num fig3-title">
         <div class="wrap stage-inner">
           <div class="stage-head">
+            <p class="stage-num" id="fig3-num">Fig. 3</p>
             <h4 id="fig3-title">Brain and behavior on one timeline</h4>
             <p class="stage-tag">Synthetic example, not patient data</p>
           </div>
           <p class="stage-intro">Move through ten minutes of a made-up hospital-room recording, then try two checks in the spirit of the project’s controls: account for movement, or shift the streams out of line.</p>
           <div class="views">
-            <div class="view">
+            <div class="view track-view">
               <p class="view-title"><strong>Timeline</strong> of ten minutes</p>
               <canvas class="track-canvas behavior-canvas" data-behavior-canvas role="img" aria-label="Ten minutes of a synthetic recording on one timeline: behavior labels, wrist speed, a speech envelope and six synthetic neural channels. The hand channels follow the wrist, and the speech channels rise while the person talks."></canvas>
               <div class="view-key">
                 <div class="key-pair">
                   <span class="cbar" aria-hidden="true"><span>−</span><span class="cbar-ramp" data-ramp="activity"></span><span>+</span></span>
-                  <p class="view-note">Neural activity, <span class="nowrap">z-score</span>, full colour at ±3</p>
+                  <p class="view-note">Neural activity, <span class="nowrap">z-score</span>, full color at ±3</p>
                 </div>
               </div>
             </div>
@@ -486,18 +504,18 @@
             <dl class="stats">
               <div><dt>Moment</dt><dd data-out="time">3:50</dd></div>
               <div><dt>Behavior label</dt><dd data-out="label">talking</dd></div>
-              <div><dt>Speech channels vs “talking” labels, in this example</dt><dd data-out="match">r = 0.92</dd></div>
-              <div><dt>Variance movement explains in this example, hand / speech channels</dt><dd data-out="explained">84% / 4%</dd></div>
+              <div><dt>Speech channels versus “talking” labels, in this example</dt><dd data-out="match">r = 0.92</dd></div>
+              <div><dt>Variance explained by movement in this example, hand / speech channels</dt><dd data-out="explained">82% / 2%</dd></div>
             </dl>
             <p class="visually-hidden" aria-live="polite" data-out="live"></p>
           </div>
           <noscript><p class="stage-intro">The interactive figure needs JavaScript; the text above describes its default view.</p></noscript>
-          <figcaption class="stage-caption">Synthetic example: an invented ten minutes of a hospital-room recording, with generated pose, labels, sound and neural activity. The hand channels were built to follow the wrist and the speech channels to follow talking, so the controls behave as designed: this shows the logic of the analysis, not the project’s data or results. The real framework pairs intracranial EEG with video, audio and language, measures behavior with pose estimation and vision–language models, and tests decoding on held-out recording days with movement baselines and temporal-mismatch controls.</figcaption>
+          <p class="stage-caption">Synthetic example: an invented ten minutes of a hospital-room recording, with generated pose, labels, sound and neural activity. The hand channels were built to follow the wrist and the speech channels to follow talking, so the controls behave as designed: this shows the logic of the analysis, not the project’s data or results. The real project runs controls like these on measured recordings and tests decoding on held-out recording days.</p>
         </div>
       </figure>
 
       <div class="wrap project-block">
-        <p class="next-line">Next question: <a href="#next-behavior">What does the brain encode during natural behavior?</a></p>
+        <p class="next-line"><span class="next-key">Where this leads<span class="visually-hidden">:</span></span> <a href="#next-decode">decoders that follow natural behavior across recording days</a>.</p>
         <details class="more">
           <summary><span>Measurement, pipelines, evaluation and supervisors</span><span class="pm" aria-hidden="true"></span></summary>
           <div class="more-body">
@@ -512,37 +530,229 @@
   </section>
 
   <!-- =====================================================================
-       RESEARCH INTERESTS AND FUTURE DIRECTIONS
+       DIRECTIONS
+       One loop, four directions. assets/js/directions.js draws the loop from
+       the words in this section, so edit them here and the figure follows:
+       - the loop's eight points: the list in .loop-stage (a sub-label in a span);
+       - each direction, li[data-arc]: data-name and data-when label its part
+         of the loop, data-arc-label names that part's link for screen
+         readers, data-long dashes it as a long-term goal, and data-via labels
+         the line across the middle;
+       - each "Built on" link: data-mark (current or earlier) sets its bullet,
+         and data-at puts a mark for it on that part of the loop, with
+         data-label as the mark's tooltip. Other links to the same entry light
+         that mark too.
        ===================================================================== -->
-  <section class="section" id="next" aria-labelledby="next-title">
+  <section class="section directions" id="next" aria-labelledby="next-title">
     <div class="wrap">
       <header class="section-head">
-        <h2 id="next-title">Questions I want to pursue next</h2>
-        <p>Each grows out of the work above, and together they describe the research I want to do next.</p>
+        <h2 id="next-title">Reading the brain, and one day writing to it</h2>
+        <p>My interest is brain–computer interfaces (BCIs) as a whole, for speech and for movement. An interface is a loop: it records what the brain intends, decodes it into words or motion, and returns the result to the person. The four directions below go once around that loop, from reading the brain to the long-term goal of writing to it.</p>
+        <p class="directions-ways">Across all four, I work in the same three ways: modeling where a signal comes from, testing decoders with controls that show what they really use, and designing for the loop that closes through the person.</p>
       </header>
-      <ul class="questions">
-        <li class="question" id="next-anatomy">
-          <h3>Can anatomy make surface recordings more informative?</h3>
-          <div class="question-body">
-            <p>Surface arrays record the crowns of folds well and the sulci poorly. I want to test whether anatomically informed source reconstruction, which pairs forward models of the head with Bayesian inverse methods, can recover sulcal activity that improves speech decoding.</p>
-            <p class="trace">Builds on <a href="#project-sources">my current source-reconstruction project</a> and the <a href="#exp-startup">2025 source-modeling prototype</a>.</p>
+
+      <div class="directions-grid">
+        <figure class="loop" data-loop aria-labelledby="loop-title">
+          <div class="loop-head">
+            <p class="loop-title" id="loop-title"><strong>The loop</strong> of a brain–computer interface</p>
+            <p class="loop-tag">Schematic, not a result</p>
           </div>
-        </li>
-        <li class="question" id="next-signal">
-          <h3>Which parts of the ECoG signal carry speech?</h3>
-          <div class="question-body">
-            <p>New features can improve a decoder just by adding dimensions. In speech decoding I used band ablations and shuffled, residual and duplicated-feature controls to test what frequencies up to 300&nbsp;Hz add. I want to keep separating real neural information from added input size, across frequency bands and phoneme representations.</p>
-            <p class="trace">Builds on <a href="#project-speech">speech decoding from ECoG</a> (2025–26) and <a href="#exp-startup">context-dependent phoneme labels</a> (2025).</p>
+          <!-- Read before the drawing's four links; the drawing itself is decoration around them. -->
+          <p class="visually-hidden" id="loop-desc">A loop of eight points: the brain, electrodes (ECoG or iEEG), a decoder (speech or movement), an output (words or a hand), the world, sensors (touch or vision), an encoder that turns sensor data into pulses, and stimulation, often on sensory cortex, back into the brain. The top half reads from the brain; the bottom half, dashed as a long-term goal, writes to it. A line across the middle is feedback through the person’s own eyes and ears, and a dotted line joins the electrodes and stimulation. Marks on the loop are pieces of my work, listed under “Built on” in each direction below; the writing half has none. Each part of the loop links to its direction.</p>
+          <div class="loop-stage" data-loop-stage data-label="Parts of the loop, each a link to its direction below">
+            <!-- The loop's points, clockwise from the left. Without scripts this list stands in for the drawing. -->
+            <ol class="loop-points" data-loop-points>
+              <li>Brain</li>
+              <li>Electrodes <span>ECoG · iEEG</span></li>
+              <li>Decoder <span>speech · movement</span></li>
+              <li>Output <span>words · a hand</span></li>
+              <li>World</li>
+              <li>Sensors <span>touch · vision</span></li>
+              <li>Encoder <span>sensor data to pulses</span></li>
+              <li>Stimulation <span>often on sensory cortex</span></li>
+            </ol>
           </div>
-        </li>
-        <li class="question" id="next-behavior">
-          <h3>What does the brain encode during natural behavior?</h3>
-          <div class="question-body">
-            <p>Clinical recordings contain hours of unscripted behavior. With video, audio and language models measuring that behavior automatically, I want to ask what neural activity captures beyond movement kinematics, and whether the answer holds across recording days.</p>
-            <p class="trace">Builds on <a href="#project-behavior">my current brain–behavior mapping project</a>.</p>
+          <ul class="loop-key">
+            <li><svg class="lk" viewBox="0 0 28 12" width="28" height="12" aria-hidden="true" focusable="false"><path class="lk-line" d="M3 6H25"/></svg>Direction, near term or next</li>
+            <li><svg class="lk" viewBox="0 0 28 12" width="28" height="12" aria-hidden="true" focusable="false"><path class="lk-line is-long" d="M3 6H25"/></svg>Long-term goal</li>
+            <li><svg class="lk" viewBox="0 0 14 14" width="14" height="14" aria-hidden="true" focusable="false"><circle class="lp-mark-dot is-current" cx="7" cy="7" r="4.5"/></svg>Current work</li>
+            <li><svg class="lk" viewBox="0 0 14 14" width="14" height="14" aria-hidden="true" focusable="false"><circle class="lp-mark-dot" cx="7" cy="7" r="4.5"/></svg>Earlier work</li>
+          </ul>
+          <figcaption class="loop-cap">Top half: reading from the brain. Bottom half: writing to it. Across the middle: feedback through the person’s own eyes and ears. The dotted line joins recording and stimulation, which one model of the head describes. Each mark is a piece of my work, placed on the part of the loop it belongs to.</figcaption>
+        </figure>
+
+        <ol class="directions-list">
+          <li class="direction" id="next-read" data-arc="read" data-name="Read" data-when="near term" data-arc-label="Read, near term: from the brain to the electrodes">
+            <span class="anchor-alias" id="next-anatomy"></span><span class="anchor-alias" id="next-signal"></span>
+            <div class="direction-meta">
+              <svg class="glyph" viewBox="0 0 40 40" width="40" height="40" aria-hidden="true" focusable="false"><circle class="gl-ring" cx="20" cy="20" r="15"/><path class="gl-ring" d="M5 20H35"/><path class="gl-arc" d="M5 20A15 15 0 0 1 9.39 9.39"/><circle class="gl-brain" cx="5" cy="20" r="3.2"/></svg>
+              <p class="direction-when"><strong>Read</strong> · Near&nbsp;term<span class="direction-path"><span class="sep"> · </span>brain&nbsp;<span aria-hidden="true">→</span><span class="visually-hidden">to</span> electrodes</span></p>
+            </div>
+            <h3>How much more can the electrodes we already have tell us?</h3>
+            <div class="direction-body">
+              <p>Surface arrays rest on the crowns of cortical folds, but much of the cortex for speech and movement lies inside the folds: the superior temporal sulcus and Sylvian fissure for speech, the central sulcus for the hand. I want to find out how much of that hidden activity can be recovered with models of each person’s anatomy, and whether that changes what decoders can do.</p>
+              <details class="direction-q" open data-questions>
+                <summary><span class="pm" aria-hidden="true"></span>Questions<span class="visually-hidden"> about reading</span></summary>
+                <ul>
+                  <li>Does activity recovered from inside the folds carry information a decoder can use, beyond what the surface contacts already record?</li>
+                  <li>Which frequency bands carry speech and movement information, once controls rule out the gain from simply adding inputs?</li>
+                </ul>
+              </details>
+              <p class="trace"><span class="trace-key">Built on<span class="visually-hidden">:</span></span> <a href="#project-sources" data-mark="current" data-at="read" data-label="Source reconstruction for ECoG · since July 2026">source reconstruction for ECoG</a> (current project), <a href="#startup-source" data-mark="earlier" data-at="read" data-label="ECoG source-modeling prototype · 2025">the 2025 source-modeling prototype</a> and <a href="#project-speech" data-mark="current">frequency-band controls in speech decoding</a>.</p>
+            </div>
+          </li>
+
+          <li class="direction" id="next-decode" data-arc="decode" data-name="Decode" data-when="near term" data-arc-label="Decode, near term: from the electrodes through a decoder to an output">
+            <span class="anchor-alias" id="next-behavior"></span>
+            <div class="direction-meta">
+              <svg class="glyph" viewBox="0 0 40 40" width="40" height="40" aria-hidden="true" focusable="false"><circle class="gl-ring" cx="20" cy="20" r="15"/><path class="gl-ring" d="M5 20H35"/><path class="gl-arc" d="M9.39 9.39A15 15 0 0 1 30.61 9.39"/><circle class="gl-brain" cx="5" cy="20" r="3.2"/></svg>
+              <p class="direction-when"><strong>Decode</strong> · Near&nbsp;term<span class="direction-path"><span class="sep"> · </span>electrodes&nbsp;<span aria-hidden="true">→</span><span class="visually-hidden">to</span> decoder&nbsp;<span aria-hidden="true">→</span><span class="visually-hidden">to</span> output</span></p>
+            </div>
+            <h3>Can decoders follow speech and movement as people actually use them?</h3>
+            <div class="direction-body">
+              <p>Speech and finger decoding have mostly used cued tasks. I want decoders for speech and movement that follow unscripted behavior, keep working from one day to the next, and use what the two share: both are laid out along the same strip of sensorimotor cortex.</p>
+              <details class="direction-q" open data-questions>
+                <summary><span class="pm" aria-hidden="true"></span>Questions<span class="visually-hidden"> about decoding</span></summary>
+                <ul>
+                  <li>Do decoders learned from hours of natural behavior transfer to the cued tasks that speech and motor BCIs are trained on, and back?</li>
+                  <li>What would continuous control of individual fingers need from cortical recordings that it did not need from muscle signals?</li>
+                </ul>
+              </details>
+              <p class="trace"><span class="trace-key">Built on<span class="visually-hidden">:</span></span> <a href="#project-speech" data-mark="current" data-at="decode" data-label="Speech decoding from ECoG · 2025–26, ongoing">speech decoding from ECoG</a> (SfN 2026), <a href="#project-behavior" data-mark="current" data-at="decode" data-label="Brain–behavior mapping · since July 2026"><span class="nowrap">brain–behavior</span> mapping</a> (current project), <a href="#exp-cibr" data-mark="earlier" data-at="decode" data-label="BETA, macaque M1 and PMd · 2024">the BETA autoencoder</a> (macaque M1 and PMd, 2024) and <a href="#exp-nebi" data-mark="earlier" data-at="decode" data-label="Finger decoding from surface EMG · 2023–25">finger decoding from <span class="nowrap">high-density</span> surface EMG</a>&nbsp;(2023–25).</p>
+            </div>
+          </li>
+
+          <li class="direction" id="next-loop" data-arc="close" data-name="Close the loop" data-when="next" data-via="eyes and ears" data-arc-label="Close the loop, next: from the output through the person’s eyes and ears back to the brain">
+            <div class="direction-meta">
+              <svg class="glyph" viewBox="0 0 40 40" width="40" height="40" aria-hidden="true" focusable="false"><circle class="gl-ring" cx="20" cy="20" r="15"/><path class="gl-ring" d="M5 20H35"/><path class="gl-arc" d="M30.61 9.39A15 15 0 0 1 35 20M35 20H5"/><circle class="gl-brain" cx="5" cy="20" r="3.2"/></svg>
+              <p class="direction-when"><strong>Close the loop</strong> · Next<span class="direction-path"><span class="sep"> · </span>output&nbsp;<span aria-hidden="true">→</span><span class="visually-hidden">to</span> eyes and ears&nbsp;<span aria-hidden="true">→</span><span class="visually-hidden">to</span> brain</span></p>
+            </div>
+            <h3>Can the person and the decoder correct each other?</h3>
+            <div class="direction-body">
+              <p>Once an interface is in use, the loop closes through the person: they see or hear the result and adjust, and the brain responds when an output is wrong. I built an ECoG detector for those error responses, and iCrutch, a reading interface that predicts involuntary eye movements and shifts the text to offset them. I want decoders that use such signals while they run.</p>
+              <details class="direction-q" open data-questions>
+                <summary><span class="pm" aria-hidden="true"></span>Questions<span class="visually-hidden"> about closing the loop</span></summary>
+                <ul>
+                  <li>Can error responses recorded from the brain correct a speech or movement decoder as it runs?</li>
+                  <li>How should a decoder adapt during use, and how quickly must it respond for the person to stay in control?</li>
+                </ul>
+              </details>
+              <p class="trace"><span class="trace-key">Built on<span class="visually-hidden">:</span></span> <a href="#startup-errp" data-mark="earlier" data-at="close" data-label="Error-potential detector, ECoG · 2025">the ECoG error-potential detector</a> (2025) and <a href="#exp-cis" data-mark="earlier" data-at="close" data-label="iCrutch, closed-loop reading interface · 2026">iCrutch</a> (2026).</p>
+            </div>
+          </li>
+
+          <li class="direction" id="next-write" data-arc="write" data-name="Write" data-when="long term" data-long data-arc-label="Write, long term: from sensors through an encoder and stimulation back into the brain">
+            <div class="direction-meta">
+              <svg class="glyph" viewBox="0 0 40 40" width="40" height="40" aria-hidden="true" focusable="false"><circle class="gl-ring" cx="20" cy="20" r="15"/><path class="gl-ring" d="M5 20H35"/><path class="gl-arc is-long" d="M35 20A15 15 0 0 1 20 35A15 15 0 0 1 5 20"/><circle class="gl-brain" cx="5" cy="20" r="3.2"/></svg>
+              <p class="direction-when"><strong>Write</strong> · Long&nbsp;term<span class="direction-path"><span class="sep"> · </span>sensors&nbsp;<span aria-hidden="true">→</span><span class="visually-hidden">to</span> encoder&nbsp;<span aria-hidden="true">→</span><span class="visually-hidden">to</span> stimulation&nbsp;<span aria-hidden="true">→</span><span class="visually-hidden">to</span> brain</span></p>
+            </div>
+            <h3>Can an interface put information back into the brain?</h3>
+            <div class="direction-body">
+              <p>A hand moved by a decoder still cannot feel what it holds. Stimulating sensory cortex can evoke touch felt in the hand, and stimulating visual cortex can evoke points of light, so an interface could send what its sensors detect back into the brain. This is a long-term goal, not current work. By reciprocity, the head model that says what a contact records also predicts where its stimulation current goes. How neurons respond to that field is the harder part, and the part I want to learn.</p>
+              <details class="direction-q" open data-questions>
+                <summary><span class="pm" aria-hidden="true"></span>Questions<span class="visually-hidden"> about writing</span></summary>
+                <ul>
+                  <li>How should what a prosthetic hand senses be encoded as stimulation, so that it is felt as touch and helps with grasping?</li>
+                  <li>Can one device record and stimulate in the same loop, without the stimulation corrupting what the decoder reads?</li>
+                  <li>Can models of individual anatomy aim stimulation at cortex inside a sulcus?</li>
+                </ul>
+              </details>
+              <p class="trace"><span class="trace-key">Built on<span class="visually-hidden">:</span></span> <a href="#project-sources" data-mark="current">the forward models in my source-reconstruction project</a> and <a href="#exp-wilmer" data-mark="earlier">behavioral testing in a prosthetic-vision rehabilitation study</a> (PLoVR, 2023–24).</p>
+              <p class="direction-lead"><a href="#fig-write">See it in a toy model</a><span aria-hidden="true"> ↓</span></p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Interactive figure (assets/js/fig-write.js): Fig. 1's toy model run both ways -->
+    <figure class="stage" data-fig="write" id="fig-write" aria-labelledby="fig4-num fig4-title">
+      <div class="wrap stage-inner">
+        <div class="stage-head">
+          <p class="stage-num" id="fig4-num">Fig. 4</p>
+          <h3 id="fig4-title">Writing back through the same contacts</h3>
+          <p class="stage-tag">Toy model, synthetic data</p>
+        </div>
+        <p class="stage-intro">Pick a patch of cortex. In the Record view the contacts record it; in the Stimulate view the same contacts pass current to stimulate it. By reciprocity, what a contact records from a patch and how hard it pushes that patch are the same number, so the recording doubles as a recipe: played back as currents, it pushes the patch harder than any other pattern with the same budget.</p>
+        <div class="views views-pair">
+          <div class="view">
+            <p class="view-title"><strong>Record</strong>: the patch drives the contacts</p>
+            <div class="view-stage">
+              <canvas class="fig-canvas write-canvas" data-write-canvas="record" role="img" aria-label="Cross-section of the cortical fold from Fig. 1, with a strip of electrode contacts on the surface and one patch of cortex acting as a source. The contacts are colored by what they record from the patch; the text below gives the values."></canvas>
+              <div class="fig-handle" data-write-handle="record" aria-hidden="true" hidden></div>
+            </div>
+            <div class="view-key">
+              <div class="key-pair">
+                <span class="cbar" aria-hidden="true"><span>−</span><span class="cbar-ramp" data-ramp="contacts"></span><span>+</span></span>
+                <p class="view-note">Contacts: the recording, then the current, each scaled to its strongest contact</p>
+              </div>
+            </div>
           </div>
-        </li>
-      </ul>
+          <div class="view">
+            <p class="view-title"><strong>Stimulate</strong>: the contacts drive the patch</p>
+            <div class="view-stage">
+              <canvas class="fig-canvas write-canvas" data-write-canvas="stim" role="img" aria-label="The same cross-section, with the same contacts passing current. White lines show current flowing through the tissue, and the cortex is colored by how strongly the current pushes each patch along its columns; the text below gives the values."></canvas>
+              <div class="fig-handle" data-write-handle="stim" aria-hidden="true" hidden></div>
+              <div class="contact-pads" data-write-pads aria-hidden="true" hidden></div>
+            </div>
+            <div class="view-key">
+              <div class="key-pair">
+                <span class="cbar" aria-hidden="true"><span>−</span><span class="cbar-ramp" data-ramp="push"></span><span>+</span></span>
+                <p class="view-note">Push along the columns, log scale. Warm: field toward the white matter, which depolarizes cell bodies (first approximation). Cool: the opposite.</p>
+              </div>
+              <div class="key-pair">
+                <svg class="key-flow" width="30" height="10" viewBox="0 0 30 10" aria-hidden="true" focusable="false"><path d="M1 5h25M21.5 1.5 27 5l-5.5 3.5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+                <p class="view-note">Current flow</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <div class="control">
+            <label class="control-label" for="fig4-position">Patch along the cortex</label>
+            <input class="range" id="fig4-position" type="range" min="0" max="1000" step="1" value="318" aria-valuetext="Sulcal wall, 7.5 mm below the electrodes" data-write-slider>
+            <div class="jumps" role="group" aria-label="Jump to a location">
+              <span aria-hidden="true">Jump to</span>
+              <button type="button" class="chip-btn" data-preset="crown">gyral crown</button>
+              <button type="button" class="chip-btn" data-preset="wall" data-active>sulcal wall</button>
+              <button type="button" class="chip-btn" data-preset="fundus">fundus</button>
+            </div>
+          </div>
+          <fieldset class="control">
+            <legend class="control-label">Current pattern</legend>
+            <p class="control-hint" data-out="hint">Every pattern gets the same budget: the same sum of squared currents.</p>
+            <div class="seg">
+              <label><input type="radio" name="fig4-pattern" value="playback" checked><span>Play back the recording</span></label>
+              <label><input type="radio" name="fig4-pattern" value="nearest"><span>Nearest contact</span></label>
+              <label><input type="radio" name="fig4-pattern" value="own"><span>Your own</span></label>
+            </div>
+            <div class="pattern-contacts" data-write-row role="group" aria-label="Contacts, left to right. Each press cycles anode, cathode, off." hidden><div class="contact-chips" data-write-chips></div></div>
+            <button class="btn reset" type="button" data-write-reset>Reset figure</button>
+          </fieldset>
+        </div>
+
+        <div class="readouts">
+          <div>
+            <p class="explain" data-out="explain">In the sulcal wall the columns lie sideways, so the recording is split: positive on one side of the fold, negative on the other. Played back, the current crosses the fold and pushes the patch harder than any single contact can. The crown right under a contact is pushed far harder than the patch, and the facing wall is pushed the opposite way.</p>
+          </div>
+          <dl class="stats">
+            <div><dt>Patch</dt><dd data-out="region">Sulcal wall</dd></div>
+            <div><dt>Depth below electrodes</dt><dd data-out="depth">7.5&nbsp;mm</dd></div>
+            <div><dt>Recorded peak, versus a crown source</dt><dd data-out="peak">2.1%</dd></div>
+            <div><dt>Push on the patch, versus one contact over a crown</dt><dd data-out="push">4.4%</dd></div>
+            <div><dt>This pattern, versus the strongest possible with the same budget</dt><dd data-out="score">100%</dd></div>
+            <div><dt>Strongest push on cortex more than 3&nbsp;mm away</dt><dd data-out="worst">11× the patch</dd></div>
+          </dl>
+          <p class="visually-hidden" aria-live="polite" data-out="live"></p>
+        </div>
+        <noscript><p class="stage-intro">The interactive figure needs JavaScript; the text above describes its default view.</p></noscript>
+        <p class="stage-caption">Toy model: the fold, contacts and uniform conductor of <a href="#fig-sources">Fig.&nbsp;1</a>, with no noise. Recording: one point current dipole along the cortical normal. Stimulation: point currents at the contacts, with any net current returning through a distant electrode; every pattern is scaled to the same sum of squared currents. “Push” is the part of the electric field along the cortical columns; pointing from the surface toward the white matter, it depolarizes pyramidal cell bodies, a common first approximation. Real stimulation also acts on axons and depends on pulse shape. The figure illustrates a <span class="nowrap">long-term</span> interest; it is not a model, data or result of my projects.</p>
+      </div>
+    </figure>
+
+    <div class="wrap">
+      <p class="directions-close">If you work on any part of this loop, I’d be glad to <a href="#contact">hear from you</a>.</p>
     </div>
   </section>
 
@@ -596,16 +806,41 @@
           <p>Since 2025 I have worked with human ECoG, first at a neurotechnology startup and then in Edward Chang’s lab at UCSF, where I am now a clinical research coordinator. Across these projects I have built complete pipelines, from anatomy and raw signals to trained models, and designed the controls that show what a decoder is really using.</p>
         </div>
         <dl class="facts-inline">
-          <div><dt>Education</dt><dd>B.S., Johns Hopkins University, Whiting School of Engineering, 2022–2026. Biomedical Engineering and Computer Science (double major), minor in Robotics.</dd></div>
-          <div><dt>Tools I use most</dt><dd>Python, PyTorch, TensorFlow, MNE-Python, FreeSurfer, OpenMEEG, SimNIBS, MATLAB, C++ and Unity.</dd></div>
+          <div><dt>Education</dt><dd>B.S., Johns Hopkins University, Whiting School of Engineering, <span class="nowrap">2022–2026</span>. Biomedical Engineering and Computer Science (double major), minor in Robotics.</dd></div>
+          <div id="tools"><dt>Tools I use most</dt><dd>
+            <ul class="tools">
+              <li><span class="tools-kind">Head models and signals<span class="visually-hidden">:</span></span> FreeSurfer, OpenMEEG, SimNIBS, MNE-Python</li>
+              <li><span class="tools-kind">Machine learning<span class="visually-hidden">:</span></span> PyTorch, TensorFlow</li>
+              <li><span class="tools-kind">Languages and engines<span class="visually-hidden">:</span></span> Python, MATLAB, C++, Unity</li>
+            </ul>
+          </dd></div>
         </dl>
       </div>
     </div>
 
     <div class="wrap experience" id="experience">
           <h3>Experience</h3>
+          <!-- Signals by year. assets/js/signals.js draws it from this page, so edit the entries and
+               the chart follows: its rows are the list below, in order; each role's bar comes from
+               the attributes on its li.xp: data-signal (one or more row keys), data-from and data-to
+               (YYYY-MM, or "now" for a current role), data-short (the bar's label) and, where the
+               first sentence of the entry's place line is not a place, data-place (the place its
+               bar names for screen readers). A role with no data-signal has no bar. -->
+          <figure class="signals" data-signals aria-labelledby="signals-title">
+            <p class="signals-title" id="signals-title"><strong>Signals</strong> I have worked with, from outside the body to inside cortex</p>
+            <div class="signals-stage" data-signals-stage>
+              <ol class="signals-rows" data-signals-rows>
+                <li data-row="behavior">Behavior <span>VR, gaze, video</span></li>
+                <li data-row="muscle">Muscle <span>surface EMG</span></li>
+                <li data-row="fmri">Whole brain <span>fMRI</span></li>
+                <li data-row="intracranial">Brain surface and depth <span>ECoG, iEEG</span></li>
+                <li data-row="cortex">Inside cortex <span>Utah arrays, macaque</span></li>
+              </ol>
+            </div>
+            <figcaption class="signals-cap">Each bar is a role below, on the row of the signal it worked with; filled bars are current. Not shown: the 2023 securement device, which recorded no signals.</figcaption>
+          </figure>
           <ol class="xp-list">
-            <li class="xp" id="exp-crc">
+            <li class="xp" id="exp-crc" data-signal="intracranial behavior" data-from="2026-07" data-to="now" data-short="UCSF, now">
               <p class="xp-date">Jul 2026 – present</p>
               <div class="xp-main">
                 <h4 class="xp-role">Clinical Research Coordinator</h4>
@@ -614,7 +849,7 @@
               </div>
             </li>
 
-            <li class="xp" id="exp-cis">
+            <li class="xp" id="exp-cis" data-signal="behavior" data-from="2026-02" data-to="2026-05" data-short="iCrutch">
               <p class="xp-date">Feb – May 2026</p>
               <div class="xp-main">
                 <h4 class="xp-role">Independent course project</h4>
@@ -630,16 +865,16 @@
               </div>
             </li>
 
-            <li class="xp" id="exp-visiting">
+            <li class="xp" id="exp-visiting" data-signal="intracranial" data-from="2025-08" data-to="2026-06" data-short="UCSF: speech">
               <p class="xp-date">Aug 2025 – Jun 2026</p>
               <div class="xp-main">
                 <h4 class="xp-role">Visiting Scholar</h4>
                 <p class="xp-org">Chang Lab, University of California, San Francisco. Supervisors: David Moses and Edward F. Chang.</p>
-                <p class="xp-key">Neuroprosthetic speech decoding from ECoG; the collaboration continues and led to a co-first-authored SfN 2026 abstract. See <a href="#project-speech">Research</a>.</p>
+                <p class="xp-key">Neuroprosthetic speech decoding from ECoG; the collaboration continues and led to a co-first-authored SfN 2026 abstract. See <a href="#project-speech">the speech project under Research</a>.</p>
               </div>
             </li>
 
-            <li class="xp" id="exp-startup">
+            <li class="xp" id="exp-startup" data-signal="intracranial" data-from="2025-05" data-to="2025-08" data-short="Startup" data-place="a neurotechnology startup">
               <p class="xp-date">May – Aug 2025</p>
               <div class="xp-main">
                 <h4 class="xp-role">Research Assistant</h4>
@@ -648,17 +883,17 @@
                 <details class="xp-more">
                   <summary><span class="pm" aria-hidden="true"></span>All five projects</summary>
                   <div class="xp-body">
-                    <div><h4>Error-potential decoding for BCI monitoring</h4><p>I implemented trial labeling and adaptive segmentation for missing feedback-onset timestamps, compared event-related potentials on correct and incorrect trials to find informative channels, and designed a four-layer dilated convolutional network with two-stage channel selection and class-weighted loss.</p></div>
-                    <div><h4>ECoG source-modeling prototype</h4><p>MRI segmentation, CT/MRI registration, finite-element meshing and cortical source spaces; synthetic recordings for testing inverse methods; STTU-Net for cortical signal reconstruction; interactive 3D diagnostics.</p></div>
-                    <div><h4>Batch-size scaling in ECoG speech decoders</h4><p>Found and characterized how batch size affects accuracy, convergence, stability and generalization in CNN–RNN–CTC speech decoders, using multi-GPU sweeps across powers-of-two batch sizes. Batch-size-informed training reached 15% word error rate, compared with the 25% reference reported in the prior study.</p></div>
-                    <div><h4>Context-dependent phoneme labels</h4><p>Triphone and word- and sentence-position labels to represent coarticulation and linguistic context, with cross-validated pipelines tracking word, character and phoneme error rates. Confusion analysis and t-SNE/UMAP views identified label schemes that reduced systematic phoneme confusions.</p></div>
-                    <div><h4>Text2P</h4><p>A modular Python library that uses espeak-ng to produce ARPAbet and IPA phonemes with timing annotations, validated against reference audio.</p></div>
+                    <div id="startup-errp"><h5>Error-potential decoding for BCI monitoring</h5><p>I implemented trial labeling and adaptive segmentation for missing feedback-onset timestamps, compared event-related potentials on correct and incorrect trials to find informative channels, and designed a four-layer dilated convolutional network with two-stage channel selection and class-weighted loss.</p></div>
+                    <div id="startup-source"><h5>ECoG source-modeling prototype</h5><p>MRI segmentation, CT/MRI registration, finite-element meshing and cortical source spaces; synthetic recordings for testing inverse methods; STTU-Net for cortical signal reconstruction; interactive 3D diagnostics.</p></div>
+                    <div id="startup-batch"><h5>Batch-size scaling in ECoG speech decoders</h5><p>Found and characterized how batch size affects accuracy, convergence, stability and generalization in CNN–RNN–CTC speech decoders, using multi-GPU sweeps across powers-of-two batch sizes. Batch-size-informed training reached 15% word error rate, compared with the 25% reference reported in the prior study.</p></div>
+                    <div id="startup-phoneme"><h5>Context-dependent phoneme labels</h5><p>Triphone and word- and sentence-position labels to represent coarticulation and linguistic context, with cross-validated pipelines tracking word, character and phoneme error rates. Confusion analysis and t-SNE/UMAP views identified label schemes that reduced systematic phoneme confusions.</p></div>
+                    <div id="startup-text2p"><h5>Text2P</h5><p>A modular Python library that uses espeak-ng to produce ARPAbet and IPA phonemes with timing annotations, validated against reference audio.</p></div>
                   </div>
                 </details>
               </div>
             </li>
 
-            <li class="xp" id="exp-brainrecon">
+            <li class="xp" id="exp-brainrecon" data-signal="fmri" data-from="2025-02" data-to="2025-05" data-short="BrainRecon" data-place="Johns Hopkins University">
               <p class="xp-date">Feb – May 2025</p>
               <div class="xp-main">
                 <h4 class="xp-role">Group leader, BrainRecon</h4>
@@ -673,7 +908,7 @@
               </div>
             </li>
 
-            <li class="xp" id="exp-cibr">
+            <li class="xp" id="exp-cibr" data-signal="cortex" data-from="2024-05" data-to="2024-08" data-short="BETA">
               <p class="xp-date">May – Aug 2024</p>
               <div class="xp-main">
                 <h4 class="xp-role">Research Assistant</h4>
@@ -688,7 +923,7 @@
               </div>
             </li>
 
-            <li class="xp" id="exp-nebi">
+            <li class="xp" id="exp-nebi" data-signal="muscle" data-from="2023-09" data-to="2025-08" data-short="Finger decoding">
               <p class="xp-date">Sep 2023 – Aug 2025</p>
               <div class="xp-main">
                 <h4 class="xp-role">Research Assistant</h4>
@@ -708,11 +943,11 @@
               <div class="xp-main">
                 <h4 class="xp-role">Design team member</h4>
                 <p class="xp-org">Bariatric patient securement for interventional radiology. Supervisor: Robert Liddell.</p>
-                <p class="xp-key">Investigated fall risks and equipment constraints, developed a safety-assessment protocol for patient body-size compatibility with procedure tables, and co-designed a multi-strap securement device with clinicians and engineers.</p>
+                <p class="xp-key">Investigated fall risks and equipment constraints, developed a <span class="nowrap">safety-assessment</span> protocol for patient body-size compatibility with procedure tables, and co-designed a multi-strap securement device with clinicians and engineers.</p>
               </div>
             </li>
 
-            <li class="xp" id="exp-wilmer">
+            <li class="xp" id="exp-wilmer" data-signal="behavior" data-from="2023-02" data-to="2024-02" data-short="PLoVR">
               <p class="xp-date">Feb 2023 – Feb 2024</p>
               <div class="xp-main">
                 <h4 class="xp-role">Research Assistant</h4>
@@ -775,16 +1010,21 @@
     <p>© 2026 Zhuoxuan Li</p>
     <p>Figures on this site are schematic or synthetic illustrations, not research data.</p>
     <!-- Update this date when you edit the site. -->
-    <p>Updated October 2026</p>
+    <p>Updated November 2026</p>
   </div>
 </footer>
 
 <script src="assets/js/model.js" defer></script>
-<script src="assets/js/main.js" defer></script>
+<!-- If main.js fails to load, the .js mark comes off again: the page then hides the buttons it
+     drives and shows the phone menu open, as it does without scripts. -->
+<script src="assets/js/main.js" defer onerror="document.documentElement.classList.remove('js')"></script>
+<script src="assets/js/signals.js" defer></script>
 <script src="assets/js/hero-viewer.js" defer></script>
 <script src="assets/js/fig-sources.js" defer></script>
 <script src="assets/js/figure-kit.js" defer></script>
 <script src="assets/js/fig-speech.js" defer></script>
 <script src="assets/js/fig-behavior.js" defer></script>
+<script src="assets/js/fig-write.js" defer></script>
+<script src="assets/js/directions.js" defer></script>
 </body>
 </html>

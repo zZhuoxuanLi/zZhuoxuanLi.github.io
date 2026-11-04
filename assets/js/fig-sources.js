@@ -54,7 +54,13 @@
     crown: 'On a gyral crown the source points straight at the array, so the contacts nearest it record a strong, focal signal.',
     lip: 'At the lip of the sulcus the cortex bends away from the array. The source tilts, and its signal weakens and spreads across contacts.',
     wall: 'In the sulcal wall the source points sideways. The array records a weak, split pattern, positive on one side of the fold and negative on the other.',
-    fundus: 'At the fundus the source points toward the array again, but from deep in the fold, so the array records only a faint, broad bump.'
+    fundus: 'At the fundus the source points toward the array again, but from deep in the fold, so the array records only a faint, broad bump.',
+    // The lip and the fundus are curved, so near their ends the source turns past what
+    // their sentences say; these keep the text in step with the orientation readout there.
+    'lip facing': 'At the lip of the sulcus the cortex has only begun to bend, so the source still points almost straight at the array and the contacts nearest it record a strong, focal signal.',
+    'lip sideways': 'At the lip of the sulcus the cortex turns down into the fold. The source already points sideways, so the array records a weak, split pattern.',
+    'fundus sideways': 'Where the fundus meets the wall the source still points sideways, so from this deep the array records only a faint, split pattern.',
+    'fundus tilted': 'In the fundus the cortex curves around the bottom of the fold, so the source tilts. From this deep the array records only a faint pattern, partway between a split and a bump.'
   };
   var METHOD_NOTE = {
     mne: 'Minimum-norm estimation picks the pattern with the least total activity that explains the recordings. Shallow sources need less activity to produce the same signal, so deep activity tends to be spread toward the surface.',
@@ -115,16 +121,32 @@
       if (i === 0 && move !== false) c.moveTo(X(p.x), Y(p.y)); else c.lineTo(X(p.x), Y(p.y));
     });
   }
-  function rgba(c, a) { return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a.toFixed(3) + ')'; }
+  /* Colours on the opaque activity map (M.activityMap), t = |value| / full scale.
+     The array map takes a 1.5 power, which keeps the far field dark, and stops at 0.92,
+     short of the arms' palest steps (near white), so the peak keeps the hue of its sign.
+     A contact's fill has a floor, so a faint contact still reads as dark red or navy, and
+     a cap, so the strongest stays orange or sky blue, apart from the yellow source marks. */
+  function arrayMapRGB(v, t) { return M.activityMap(v, 0.92 * Math.pow(t, 1.5)); }
+  function contactFill(v, t) { return 'rgb(' + M.activityMap(v, 0.12 + 0.60 * t).join(',') + ')'; }
+  var HALO = 3;   // px: the black stroke under labels and yellow marks on the map, 1 to 1.5 px either side
 
-  // Draws a label and keeps it inside the canvas.
-  function label(c, text, x, y, align, color, size, width) {
+  // Draws a label and keeps it inside the canvas. With `halo`, a black stroke under the
+  // letters keeps a light label legible where it crosses a light part of the array map.
+  function label(c, text, x, y, align, color, size, width, halo) {
     c.font = '400 ' + size + 'px "Atkinson Hyperlegible Mono", ui-monospace, Menlo, Consolas, monospace';
     c.textBaseline = 'middle';
     var w = c.measureText(text).width, pad = 6;
     var left = align === 'center' ? x - w / 2 : align === 'right' ? x - w : x;
     left = Math.max(pad, Math.min(left, width - pad - w));
     c.textAlign = 'left';
+    if (halo) {
+      c.save();
+      c.lineWidth = HALO;
+      c.lineJoin = 'round';
+      c.strokeStyle = '#000';
+      c.strokeText(text, left, y);
+      c.restore();
+    }
     c.fillStyle = color;
     c.fillText(text, left, y);
   }
@@ -273,7 +295,7 @@
       ctx.fillStyle = '#000';
       ctx.fill();
       if (t > 0.02) {
-        ctx.fillStyle = rgba(M.activityColor(val, 0.35 + 0.65 * t), 0.2 + 0.8 * t);
+        ctx.fillStyle = contactFill(val, t);
         ctx.fill();
       }
       ctx.lineWidth = 1.2;
@@ -378,10 +400,9 @@
         var x = aview.x0 + ((i + 0.5) * cell) / k;
         if (x < -18 || x > 18 || z < -10 || z > 10 || !peak) { data[idx + 3] = 0; continue; }
         var v = M.potential(x, ELEC_Y, z, src);
-        var t = Math.min(1, Math.abs(v) / peak);
-        var c = M.activityColor(v, 0.3 + 0.7 * t);
+        var c = arrayMapRGB(v, Math.min(1, Math.abs(v) / peak));
         data[idx] = c[0]; data[idx + 1] = c[1]; data[idx + 2] = c[2];
-        data[idx + 3] = Math.round(255 * 0.8 * Math.pow(t, 0.9));
+        data[idx + 3] = 255;
       }
     }
     amap.ctx.putImageData(amap.img, 0, 0);
@@ -394,14 +415,25 @@
     actx.strokeRect(AX(-18) + 0.5, AZ(-10) + 0.5, AX(18) - AX(-18), AZ(10) - AZ(-10));
 
     // The fold beneath the array: drawn deliberately, though the array cannot see into it.
+    // The red dashes run over a black halo, like the yellow marks and labels below: on the map's
+    // warm arm, red alone disappears when the source is deep and the fold lies under the peak.
     actx.save();
     actx.setLineDash([4, 4]);
-    actx.strokeStyle = 'rgba(255, 77, 61, 0.75)';
     actx.beginPath();
     actx.moveTo(AX(-0.5), AZ(-10)); actx.lineTo(AX(-0.5), AZ(10));
     actx.moveTo(AX(0.5), AZ(-10)); actx.lineTo(AX(0.5), AZ(10));
+    actx.lineWidth = HALO;
+    actx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
     actx.stroke();
-    // The row shown in the section.
+    actx.lineWidth = 1;
+    actx.strokeStyle = 'rgba(255, 77, 61, 0.75)';
+    actx.stroke();
+    // The row shown in the section, over a black halo like the labels: it crosses the map's
+    // lightest colours when the source is deep and its pattern broad.
+    actx.lineWidth = HALO;
+    actx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
+    actx.strokeRect(AX(-17.6) + 0.5, AZ(-1.6) + 0.5, AX(17.6) - AX(-17.6), AZ(1.6) - AZ(-1.6));
+    actx.lineWidth = 1;
     actx.strokeStyle = 'rgba(255, 210, 63, 0.6)';
     actx.strokeRect(AX(-17.6) + 0.5, AZ(-1.6) + 0.5, AX(17.6) - AX(-17.6), AZ(1.6) - AZ(-1.6));
     actx.restore();
@@ -415,24 +447,31 @@
       actx.fillStyle = '#000';
       actx.fill();
       if (t > 0.03) {
-        actx.fillStyle = rgba(M.activityColor(c.v, 0.35 + 0.65 * t), 0.25 + 0.75 * t);
+        actx.fillStyle = contactFill(c.v, t);
         actx.fill();
       }
+      // A black ring under the white one, so each contact keeps its outline on any colour of the map.
+      actx.lineWidth = 2.6;
+      actx.strokeStyle = 'rgba(0, 0, 0, 0.55)';
+      actx.stroke();
       actx.lineWidth = 1.1;
-      actx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+      actx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
       actx.stroke();
     });
 
-    // Linked crosshair at the source's position along the array.
+    // Linked crosshair at the source's position along the array, haloed too: it runs through the peak.
+    var hairX = Math.round(AX(src.x));
+    actx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    actx.fillRect(hairX - 1, 0, 3, H);
     actx.fillStyle = 'rgba(255, 210, 63, 0.5)';
-    actx.fillRect(Math.round(AX(src.x)), 0, 1, H);
+    actx.fillRect(hairX, 0, 1, H);
 
-    label(actx, 'fold below', AX(1.4), AZ(-9.1), 'left', '#ff8a7e', fs, W);
-    label(actx, 'row in the section', AX(-17.4), AZ(2.6), 'left', '#ffd23f', fs, W);
+    label(actx, 'fold below', AX(1.4), AZ(-9.1), 'left', '#ff8a7e', fs, W, true);
+    label(actx, 'row in the section', AX(-17.4), AZ(2.6), 'left', '#ffd23f', fs, W, true);
 
     if (out.gain) {
       var gain = peak ? V_REF / peak : 1;
-      out.gain.textContent = gain < 1.5 ? 'Colours at true scale' : 'Colours scaled ×' + (gain < 10 ? gain.toFixed(1) : Math.round(gain)) + ' to show the pattern';
+      out.gain.textContent = gain < 1.5 ? 'Colors at true scale' : 'Colors scaled ×' + (gain < 10 ? gain.toFixed(1) : Math.round(gain)) + ' to show the pattern';
     }
   }
 
@@ -448,8 +487,9 @@
     var src = m.src, region = src.part || 'crown';
     var depth = ELEC_Y - src.y;
     var angle = Math.round(Math.acos(Math.max(-1, Math.min(1, src.ny))) / DEG);
-    var orient = angle <= 8 ? 'facing the array, ' + angle + '°' : Math.abs(angle - 90) <= 8 ? 'sideways, ' + angle + '°' : 'tilted, ' + angle + '°';
-    if (out.explain) out.explain.textContent = EXPLAIN[region];
+    var aim = angle <= 8 ? 'facing' : Math.abs(angle - 90) <= 8 ? 'sideways' : 'tilted';
+    var orient = (aim === 'facing' ? 'facing the array' : aim) + ', ' + angle + '°';
+    if (out.explain) out.explain.textContent = EXPLAIN[region + ' ' + aim] || EXPLAIN[region];
     if (out.region) out.region.textContent = REGION_NAME[region];
     if (out.depth) out.depth.textContent = depth.toFixed(1) + ' mm';
     if (out.orient) out.orient.textContent = orient;
@@ -483,11 +523,28 @@
   function requestRender() { if (!queued) queued = window.requestAnimationFrame(render); }
   function refreshText() { updateReadout(compute()); }
 
+  function sliderStep(s) { return String(Math.round(1000 * (s - sLo) / (sHi - sLo))); }
   function setS(s, origin) {
     state.s = Math.min(sHi, Math.max(sLo, s));
-    if (slider && origin !== 'slider') slider.value = String(Math.round(1000 * (state.s - sLo) / (sHi - sLo)));
+    if (slider && origin !== 'slider') slider.value = sliderStep(state.s);
     refreshText();
     requestRender();
+  }
+
+  // A browser can bring back the method and position a visitor chose (Back without the
+  // back/forward cache, a restored session, a Firefox reload) without firing change or
+  // input events. Applies what the controls show; returns whether anything changed.
+  function applyControls() {
+    var method = state.method, changed = false;
+    methodInputs.forEach(function (input) { if (input.checked) method = input.value; });
+    if (method !== state.method) { state.method = method; changed = true; }
+    // The slider only says where the source is if it moved off the step that state.s
+    // rounds to; otherwise keep the exact position (the presets lie between steps).
+    if (slider && slider.value !== sliderStep(state.s)) {
+      state.s = sLo + (sHi - sLo) * Number(slider.value) / 1000;
+      changed = true;
+    }
+    return changed;
   }
 
   var tween = 0;
@@ -583,13 +640,13 @@
 
   /* ---------- Setup ---------- */
   // Colour key: the array map's own ramp, from the negative peak through zero to the positive peak.
+  // (styles.css gives this key the same 21 stops, so it is right before this runs.)
   var colorbar = fig.querySelector('[data-colorbar]');
   if (colorbar) colorbar.style.backgroundImage = (function () {
     var stops = [];
     for (var i = 0; i <= 20; i++) {
-      var p = i / 10 - 1, t = Math.abs(p);
-      var col = M.activityColor(p, 0.3 + 0.7 * t), alpha = 0.8 * Math.pow(t, 0.9);   // as composited over black in renderArray
-      stops.push('rgb(' + col.map(function (v) { return Math.round(v * alpha); }).join(',') + ') ' + (i * 5) + '%');
+      var p = i / 10 - 1;
+      stops.push('rgb(' + arrayMapRGB(p, Math.abs(p)).join(',') + ') ' + (i * 5) + '%');   // as painted in renderArray
     }
     return 'linear-gradient(90deg, ' + stops.join(', ') + ')';
   })();
@@ -598,14 +655,24 @@
     var a = layoutSection(), b = layoutArray();
     if (a && b) render();
   }
-  if (slider) slider.value = String(Math.round(1000 * (state.s - sLo) / (sHi - sLo)));
+  applyControls();
+  if (slider) slider.value = sliderStep(state.s);
   refreshText();
   layout();
+  // Chromium restores the controls after load, just before pageshow.
+  window.addEventListener('pageshow', function () {
+    if (applyControls()) { refreshText(); requestRender(); }
+  });
   if ('ResizeObserver' in window) {
     var pending = 0;
     var ro = new ResizeObserver(function () {
       if (pending) return;
-      pending = window.requestAnimationFrame(function () { pending = 0; layout(); });
+      pending = window.requestAnimationFrame(function () {
+        pending = 0;
+        // Only a new width changes the drawing: the first report, and the canvases' own new height, do not.
+        if (Math.round(stage.getBoundingClientRect().width) === view.W && Math.round(arrayCanvas.getBoundingClientRect().width) === aview.W) return;
+        layout();
+      });
     });
     ro.observe(stage);
     ro.observe(arrayCanvas);
